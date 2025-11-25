@@ -43,3 +43,7 @@ pids/
 
 # Docker
 docker/logs/
+
+/src/generated/prisma
+
+/generated/prisma
