@@ -1,5 +1,5 @@
-const express = require("express")
-const routes = require("./routes/index")
+import express from "express"
+import routes from "./routes/index.js"
 
 const app = express()
 
@@ -11,4 +11,4 @@ app.use((req, res) => {
   return res.status(404).json({ message: "Route not found" })
 })
 
-module.exports = app
+export default app
