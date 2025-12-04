@@ -1,10 +1,32 @@
 import { prisma } from "../lib/prisma-client.js"
 import bcrypt from "bcrypt"
-import { hashToken } from "../utils/tokens.js"
+import {
+  hashToken,
+  signAccessToken,
+  signRefreshToken,
+} from "../utils/tokens.js"
 
 async function authenticate({ email, password }) {
   const user = await prisma.user.findUnique({ where: { email } })
-  if (!user) return null
+  if (!user) throw new Error("Invalid email or password")
+
+  const isMatch = await bcrypt.compare(password, user.password)
+  if (!isMatch) throw new Error("Invalid email or password")
+
+  const payload = { sub: user.id, role: user.role }
+  const accessToken = signAccessToken(payload)
+  const refreshToken = signRefreshToken(payload)
+
+  // storing refreshToken in DB
+  await prisma.refreshToken.create({
+    data: {
+      hashedToken: refreshToken,
+      userId: user.id,
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+    },
+  })
+
+  return { accessToken, refreshToken, user }
 }
 
 async function createUserService(data) {

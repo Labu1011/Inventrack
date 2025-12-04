@@ -1,12 +1,43 @@
+import { loginSchema } from "../dtos/auth.dto.js"
 import { createUserSchema } from "../dtos/user.dto.js"
 import { authenticate, createUserService } from "../services/auth.service.js"
 import { formatZodError } from "../utils/formatZodError.js"
 
 async function login(req, res) {
-  const { email, password } = req.body
-  const user = await authenticate({ email, password })
+  try {
+    const { email, password } = loginSchema.parse(req.body)
+    const { accessToken, refreshToken, user } = await authenticate({
+      email,
+      password,
+    })
 
-  if (!user) res.status(404).json({ message: "User not found." })
+    res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .json({
+        message: "Login successful",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        accessToken,
+      })
+  } catch (err) {
+    const zodError = formatZodError(err)
+    if (zodError) {
+      return res.status(400).json(zodError)
+    }
+
+    return res.status(400).json({
+      message: err.message || "Failed to login",
+    })
+  }
 }
 
 async function logout(req, res) {}
