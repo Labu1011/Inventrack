@@ -19,6 +19,10 @@ function verifyAccessToken(token) {
   return jwt.verify(token, ACCESS_TOKEN_SECRET)
 }
 
+function verifyRefreshToken(token) {
+  return jwt.verify(token, REFRESH_TOKEN_SECRET)
+}
+
 async function hashToken(token) {
   return await bcrypt.hash(token, SALT_ROUNDS)
 }
@@ -31,6 +35,7 @@ export {
   signAccessToken,
   signRefreshToken,
   verifyAccessToken,
+  verifyRefreshToken,
   hashToken,
   compareToken,
   ACCESS_EXP,

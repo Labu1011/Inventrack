@@ -1,6 +1,11 @@
 import { loginSchema } from "../dtos/auth.dto.js"
 import { createUserSchema } from "../dtos/user.dto.js"
-import { authenticate, createUserService } from "../services/auth.service.js"
+import {
+  authenticate,
+  createUserService,
+  logoutByToken,
+  rotateRefreshToken,
+} from "../services/auth.service.js"
 import { formatZodError } from "../utils/formatZodError.js"
 
 async function login(req, res) {
@@ -40,14 +45,39 @@ async function login(req, res) {
   }
 }
 
-async function logout(req, res) {}
+async function refresh(req, res) {
+  try {
+    const oldToken = req.cookies?.refreshToken
+    if (!oldToken)
+      return res.status(401).json({ message: "Refresh token missing" })
+
+    const { accessToken, refreshToken } = await rotateRefreshToken(oldToken)
+
+    res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .json({ accessToken })
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid refresh token" })
+  }
+}
+
+async function logout(req, res) {
+  const token = res.cookies?.refreshToken
+
+  if (token) await logoutByToken(token)
+  res.clearCookie("refreshToken").status(200).json({ message: "Logged out" })
+}
 
 async function me(req, res) {}
 
 async function createUser(req, res) {
   try {
     const parsed = createUserSchema.parse(req.body)
-    console.log(parsed)
 
     const user = await createUserService(parsed)
 
@@ -67,4 +97,4 @@ async function createUser(req, res) {
   }
 }
 
-export { login, logout, me, createUser }
+export { login, refresh, logout, me, createUser }

@@ -1,6 +1,7 @@
 import express from "express"
 import {
   login,
+  refresh,
   logout,
   me,
   createUser,
@@ -10,6 +11,7 @@ import { requireAuth, requireRole } from "../middlewares/auth.middleware.js"
 const router = express.Router()
 
 router.post("/login", login)
+router.post("/refresh", refresh)
 router.post("/logout", logout)
 router.get("/me", me)
 router.post("/create-user", requireAuth, requireRole("ADMIN"), createUser)
