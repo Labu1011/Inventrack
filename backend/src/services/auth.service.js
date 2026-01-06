@@ -33,8 +33,21 @@ async function authenticate({ email, password }) {
   return { accessToken, refreshToken, user }
 }
 
+async function getMe(payload) {
+  const user = await prisma.user.findUnique({
+    where: { id: payload.sub },
+    select: { id: true, name: true, email: true, role: true, createdAt: true },
+  })
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found" })
+  }
+
+  return user
+}
+
 async function logoutByToken(refreshToken) {
-  const token = await prisma.refreshToken.findUnique({
+  const token = await prisma.refreshToken.findFirst({
     where: { hashedToken: refreshToken },
   })
 
@@ -54,8 +67,20 @@ async function logoutByToken(refreshToken) {
   })
 }
 
+async function logoutAllSessions(token) {
+  const stored = await prisma.refreshToken.findFirst({
+    where: { hashedToken: token },
+  })
+
+  if (stored) {
+    await prisma.refreshToken.deleteMany({
+      where: { userId: stored.userId },
+    })
+  }
+}
+
 async function rotateRefreshToken(oldToken) {
-  const stored = await prisma.refreshToken.findUnique({
+  const stored = await prisma.refreshToken.findFirst({
     where: { hashedToken: oldToken },
   })
 
@@ -126,4 +151,11 @@ async function createUserService(data) {
   return user
 }
 
-export { authenticate, rotateRefreshToken, logoutByToken, createUserService }
+export {
+  authenticate,
+  getMe,
+  rotateRefreshToken,
+  logoutByToken,
+  logoutAllSessions,
+  createUserService,
+}
