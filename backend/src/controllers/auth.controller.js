@@ -42,7 +42,7 @@ async function login(req, res) {
       return res.status(400).json(zodError)
     }
 
-    return res.status(400).json({
+    return res.status(err.status || 400).json({
       message: err.message || "Failed to login",
     })
   }
@@ -66,7 +66,9 @@ async function refresh(req, res) {
       })
       .json({ accessToken })
   } catch (err) {
-    return res.status(401).json({ message: "Invalid refresh token" })
+    return res
+      .status(err.status || 401)
+      .json({ message: err.message || "Invalid refresh token" })
   }
 }
 
@@ -104,7 +106,9 @@ async function me(req, res) {
 
     return res.json({ user })
   } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" })
+    return res
+      .status(err.status || 400)
+      .json({ message: err.message || "Invalid or expired token" })
   }
 }
 
@@ -124,7 +128,7 @@ async function createUser(req, res) {
       return res.status(400).json(zodError)
     }
 
-    return res.status(400).json({
+    return res.status(err.status || 400).json({
       message: err.message || "Failed to create user",
     })
   }

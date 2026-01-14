@@ -1,19 +1,15 @@
 import { prisma } from "../lib/prisma-client.js"
 import bcrypt from "bcrypt"
 import crypto from "crypto"
-import {
-  hashToken,
-  signAccessToken,
-  signRefreshToken,
-  verifyRefreshToken,
-} from "../utils/tokens.js"
+import { hashToken, signAccessToken } from "../utils/tokens.js"
+import ApiError from "../utils/apiError.js"
 
 async function authenticate({ email, password }) {
   const user = await prisma.user.findUnique({ where: { email } })
-  if (!user) throw new Error("Invalid email or password")
+  if (!user) throw new ApiError("Invalid email or password", 401)
 
   const isMatch = await bcrypt.compare(password, user.password)
-  if (!isMatch) throw new Error("Invalid email or password")
+  if (!isMatch) throw new ApiError("Invalid email or password", 401)
 
   const payload = { sub: user.id, role: user.role }
   const accessToken = signAccessToken(payload)
@@ -40,7 +36,7 @@ async function getMe(payload) {
   })
 
   if (!user) {
-    return res.status(404).json({ message: "User not found" })
+    throw new ApiError("User not found", 404)
   }
 
   return user
@@ -52,7 +48,7 @@ async function logoutByToken(refreshToken) {
   })
 
   if (!token) {
-    return res.status(200).json({ message: "Logged out" })
+    throw new ApiError("Logged out", 200)
   }
 
   const userId = token.userId
@@ -84,14 +80,14 @@ async function rotateRefreshToken(oldToken) {
     where: { hashedToken: oldToken },
   })
 
-  if (!stored) return res.status(403).json({ error: "Invalid refresh token" })
+  if (!stored) throw new ApiError("Invalid refresh token", 401)
 
   if (stored.revoked) {
-    return res.status(403).json({ error: "Refresh token has been revoked" })
+    throw new ApiError("Refresh token has been revoked", 401)
   }
 
   if (stored.expiresAt < new Date()) {
-    return res.status(403).json({ error: "Refresh token expired" })
+    throw new ApiError("Refresh token expired", 401)
   }
 
   await prisma.refreshToken.update({
@@ -102,7 +98,7 @@ async function rotateRefreshToken(oldToken) {
   const user = await prisma.user.findUnique({ where: { id: stored.userId } })
 
   if (!user) {
-    return res.status(403).json({ error: "User not found" })
+    throw new ApiError("User not found", 404)
   }
 
   const payload = { sub: user.id, role: user.role }
@@ -127,7 +123,7 @@ async function createUserService(data) {
   })
 
   if (userExists) {
-    throw new Error("User with this email already exists")
+    throw new ApiError("User with this email already exists", 409)
   }
 
   const hashedPassword = await hashToken(data.password)

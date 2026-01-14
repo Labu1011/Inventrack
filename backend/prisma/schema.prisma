@@ -40,3 +40,29 @@ model RefreshToken {
   updatedAt   DateTime  @updatedAt
   expiresAt   DateTime
 }
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  isActive  Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id            String    @id @default(uuid())
+  name          String    
+  sku           String    @unique
+  categoryId    String    
+  category      Category  @relation(fields: [categoryId], references: [id])
+
+  unit          String    
+  costPrice     Decimal
+  sellingPrice  Decimal
+  reorderLevel  Int
+  isActive      Boolean   @default(true)      
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
