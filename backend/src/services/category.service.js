@@ -42,4 +42,61 @@ async function getCategoriesService() {
   return categories
 }
 
-export { createCategoryService, getCategoriesService }
+async function getCategoryService(id) {
+  const category = await prisma.category.findFirst({
+    where: { id: id },
+  })
+
+  if (!category) throw new ApiError("Category not found", 404)
+
+  return category
+}
+
+async function updateCategoryService(id, data) {
+  try {
+    const updated = await prisma.category.update({
+      where: { id: id },
+      data: {
+        name: data.name,
+      },
+    })
+
+    return updated
+  } catch (err) {
+    if (err.code === "P2025") {
+      throw new ApiError(`Category with this id: ${id} is not found`, 404)
+    }
+
+    throw err
+  }
+}
+
+async function disableCategoryService(id) {
+  try {
+    const updated = await prisma.category.update({
+      where: { id: id },
+      data: {
+        isActive: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        isActive: true,
+      },
+    })
+  } catch (err) {
+    if (err.code === "P2025") {
+      throw new ApiError(`Category with this id: ${id} is not found`, 404)
+    }
+
+    throw err
+  }
+}
+
+export {
+  createCategoryService,
+  getCategoriesService,
+  getCategoryService,
+  updateCategoryService,
+  disableCategoryService,
+}
