@@ -1,8 +1,13 @@
 import express from "express"
-import { createCategory } from "../controllers/category.controller"
+import {
+  createCategory,
+  getCategories,
+} from "../controllers/category.controller.js"
+import { requireAuth, requireRole } from "../middlewares/auth.middleware.js"
 
 const router = express.Router()
 
-router.post("/", createCategory)
+router.post("/", requireAuth, requireRole("ADMIN"), createCategory)
+router.get("/", getCategories)
 
 export default router
