@@ -1,7 +1,8 @@
 import { categorySchema } from "../dtos/category.dto.js"
 import {
+  activateCategoryService,
   createCategoryService,
-  disableCategoryService,
+  deactivateCategoryService,
   getCategoriesService,
   getCategoryService,
   updateCategoryService,
@@ -81,12 +82,26 @@ async function updateCategory(req, res) {
   }
 }
 
-async function disableCategory(req, res) {
+async function deactivateCategory(req, res) {
   try {
     const id = req.params.id
-    await disableCategoryService(id)
+    await deactivateCategoryService(id)
 
-    res.status(200).json({ message: "Category is disabled successfully" })
+    res.status(200).json({ message: "Category is deactivated successfully" })
+  } catch (err) {
+    return res.status(err.status || 500).json({
+      message: err.message || "Internal server error",
+    })
+  }
+}
+
+async function activateCategory(req, res) {
+  try {
+    const id = req.params.id
+
+    await activateCategoryService(id)
+
+    res.status(200).json({ message: "Category is activated successfully" })
   } catch (err) {
     return res.status(err.status || 500).json({
       message: err.message || "Internal server error",
@@ -99,5 +114,6 @@ export {
   getCategories,
   getCategory,
   updateCategory,
-  disableCategory,
+  deactivateCategory,
+  activateCategory,
 }

@@ -71,12 +71,34 @@ async function updateCategoryService(id, data) {
   }
 }
 
-async function disableCategoryService(id) {
+async function deactivateCategoryService(id) {
   try {
-    const updated = await prisma.category.update({
+    await prisma.category.update({
       where: { id: id },
       data: {
         isActive: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        isActive: true,
+      },
+    })
+  } catch (err) {
+    if (err.code === "P2025") {
+      throw new ApiError(`Category with this id: ${id} is not found`, 404)
+    }
+
+    throw err
+  }
+}
+
+async function activateCategoryService(id) {
+  try {
+    await prisma.category.update({
+      where: { id: id },
+      data: {
+        isActive: true,
       },
       select: {
         id: true,
@@ -98,5 +120,6 @@ export {
   getCategoriesService,
   getCategoryService,
   updateCategoryService,
-  disableCategoryService,
+  deactivateCategoryService,
+  activateCategoryService,
 }

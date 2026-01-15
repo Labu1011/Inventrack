@@ -1,7 +1,8 @@
 import express from "express"
 import {
+  activateCategory,
   createCategory,
-  disableCategory,
+  deactivateCategory,
   getCategories,
   getCategory,
   updateCategory,
@@ -14,6 +15,7 @@ router.post("/", requireAuth, requireRole("ADMIN"), createCategory)
 router.get("/", getCategories)
 router.get("/:id", getCategory)
 router.patch("/:id", requireAuth, requireRole("ADMIN"), updateCategory)
-router.delete("/:id", disableCategory)
+router.patch("/:id/deactivate", deactivateCategory)
+router.patch("/:id/activate", activateCategory)
 
 export default router
