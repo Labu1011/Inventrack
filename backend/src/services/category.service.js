@@ -47,7 +47,8 @@ async function getCategoryService(id) {
     where: { id: id },
   })
 
-  if (!category) throw new ApiError("Category not found", 404)
+  if (!category)
+    throw new ApiError(`Category with this id: ${id} is not found`, 404)
 
   return category
 }

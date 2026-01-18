@@ -15,7 +15,17 @@ router.post("/", requireAuth, requireRole("ADMIN"), createCategory)
 router.get("/", getCategories)
 router.get("/:id", getCategory)
 router.patch("/:id", requireAuth, requireRole("ADMIN"), updateCategory)
-router.patch("/:id/deactivate", deactivateCategory)
-router.patch("/:id/activate", activateCategory)
+router.patch(
+  "/:id/deactivate",
+  requireAuth,
+  requireRole("ADMIN"),
+  deactivateCategory
+)
+router.patch(
+  "/:id/activate",
+  requireAuth,
+  requireRole("ADMIN"),
+  activateCategory
+)
 
 export default router
