@@ -1,11 +1,12 @@
 import { loginSchema } from "../dtos/auth.dto.js"
-import { createUserSchema } from "../dtos/user.dto.js"
+import { createUserSchema, registerUserSchema } from "../dtos/user.dto.js"
 import {
   authenticate,
   createUserService,
   getMe,
   logoutAllSessions,
   logoutByToken,
+  registerUserService,
   rotateRefreshToken,
 } from "../services/auth.service.js"
 import { formatZodError } from "../utils/formatZodError.js"
@@ -134,4 +135,26 @@ async function createUser(req, res) {
   }
 }
 
-export { login, refresh, logout, logoutAll, me, createUser }
+async function registerUser(req, res) {
+  try {
+    const parsed = registerUserSchema.parse(req.body)
+
+    const user = await registerUserService(parsed)
+
+    return res.status(200).json({
+      message: "User created successfully",
+      user,
+    })
+  } catch (err) {
+    const zodError = formatZodError(err)
+    if (zodError) {
+      return res.status(400).json(zodError)
+    }
+
+    return res.status(err.status || 400).json({
+      message: err.message || "Failed to create user",
+    })
+  }
+}
+
+export { login, refresh, logout, logoutAll, me, createUser, registerUser }

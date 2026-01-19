@@ -17,6 +17,7 @@ datasource db {
 enum Role {
   ADMIN
   MANAGER
+  USER
 }
 
 model User {
@@ -24,7 +25,7 @@ model User {
   name          String
   email         String    @unique
   password      String  
-  role          Role      @default(MANAGER)
+  role          Role      @default(USER)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   refreshTokens RefreshToken[]
