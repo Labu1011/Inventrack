@@ -1,6 +1,7 @@
 import { createProductSchema } from "../dtos/product.dto.js"
 import {
   createProductService,
+  getProductsByCategoryService,
   getProductsService,
 } from "../services/product.service.js"
 import { formatZodError } from "../utils/formatZodError.js"
@@ -39,4 +40,20 @@ async function getProducts(req, res) {
   }
 }
 
-export { createProduct, getProducts }
+async function getProductsByCategory(req, res) {
+  try {
+    const categoryId = req.params.categoryId
+
+    const products = await getProductsByCategoryService(categoryId)
+
+    res.status(200).json({ products })
+  } catch (err) {
+    return res.status(err.status || 500).json({
+      message: err.message || "Internal server error",
+    })
+  }
+}
+
+async function updateProduct(req, res) {}
+
+export { createProduct, getProducts, getProductsByCategory, updateProduct }

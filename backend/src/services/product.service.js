@@ -8,7 +8,7 @@ async function createProductService(data) {
     })
 
     if (!category || !category.isActive)
-      throw new ApiError(`Category not found or inactive`, 400)
+      throw new ApiError("Category not found or inactive", 400)
 
     const product = await prisma.product.create({
       data,
@@ -19,7 +19,7 @@ async function createProductService(data) {
     console.log()
     if (
       err.code === "P2002" &&
-      err?.meta?.driverAdapterError.cause.originalMessage.includes(
+      err?.meta?.driverAdapterError?.cause?.originalMessage?.includes(
         "Product_sku_key",
       )
     ) {
@@ -31,9 +31,33 @@ async function createProductService(data) {
 }
 
 async function getProductsService() {
-  const products = await prisma.product.findMany()
+  const products = await prisma.product.findMany({
+    where: { isActive: true },
+  })
 
   return products
 }
 
-export { createProductService, getProductsService }
+async function getProductsByCategoryService(id) {
+  const category = await prisma.category.findUnique({
+    where: { id: id },
+  })
+
+  if (!category || !category.isActive)
+    throw new ApiError("Category not found or inactive", 400)
+
+  const products = await prisma.product.findMany({
+    where: { categoryId: id, isActive: true },
+  })
+
+  return products
+}
+
+async function updateProductService(id, data) {}
+
+export {
+  createProductService,
+  getProductsService,
+  getProductsByCategoryService,
+  updateProductService,
+}

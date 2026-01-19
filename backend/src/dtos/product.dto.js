@@ -12,3 +12,10 @@ export const createProductSchema = z.object({
     .int("Reorder level must be an integer")
     .nonnegative("Reorder level cannot be negative"),
 })
+
+export const updateProductSchema = z.object({
+  name: z
+    .string()
+    .min(2, "Product name must be at least 2 characters")
+    .optional(),
+})
