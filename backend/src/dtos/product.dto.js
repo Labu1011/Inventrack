@@ -13,6 +13,18 @@ export const createProductSchema = z.object({
     .nonnegative("Reorder level cannot be negative"),
 })
 
+export const productPaginationSchema = z.object({
+  page: z
+    .string()
+    .optional()
+    .transform((val) => Math.max(1, parseInt(val || "1"))),
+  limit: z
+    .string()
+    .optional()
+    .transform((val) => Math.max(1, parseInt(val || "10"))),
+  search: z.string().optional(),
+})
+
 export const updateProductSchema = z.object({
   name: z
     .string()

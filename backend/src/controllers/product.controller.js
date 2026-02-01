@@ -1,4 +1,7 @@
-import { createProductSchema } from "../dtos/product.dto.js"
+import {
+  createProductSchema,
+  productPaginationSchema,
+} from "../dtos/product.dto.js"
 import {
   createProductService,
   getProductsByCategoryService,
@@ -30,9 +33,10 @@ async function createProduct(req, res) {
 
 async function getProducts(req, res) {
   try {
-    const products = await getProductsService()
+    const { page, limit, search } = productPaginationSchema.parse(req.query)
+    const products = await getProductsService(page, limit, search)
 
-    res.status(200).json({ products })
+    res.status(200).json(products)
   } catch (err) {
     return res.status(err.status || 500).json({
       message: err.message || "Internal server error",
@@ -42,11 +46,17 @@ async function getProducts(req, res) {
 
 async function getProductsByCategory(req, res) {
   try {
+    const { page, limit, search } = productPaginationSchema.parse(req.query)
     const categoryId = req.params.categoryId
 
-    const products = await getProductsByCategoryService(categoryId)
+    const products = await getProductsByCategoryService(
+      categoryId,
+      page,
+      limit,
+      search,
+    )
 
-    res.status(200).json({ products })
+    res.status(200).json(products)
   } catch (err) {
     return res.status(err.status || 500).json({
       message: err.message || "Internal server error",
