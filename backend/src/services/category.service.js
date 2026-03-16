@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma-client.js"
-import ApiError from "../utils/apiError.js"
+import { ApiError, ConflictError, NotFoundError } from "../utils/apiError.js"
 
 async function createCategoryService(data) {
   const categoryExists = await prisma.category.findUnique({
@@ -7,7 +7,7 @@ async function createCategoryService(data) {
   })
 
   if (categoryExists) {
-    throw new ApiError("This category already exists", 409)
+    throw new ConflictError("This category already exists")
   }
 
   const category = await prisma.category.create({
@@ -48,7 +48,7 @@ async function getCategoryService(id) {
   })
 
   if (!category)
-    throw new ApiError(`Category with this id: ${id} is not found`, 404)
+    throw new NotFoundError(`Category with this id: ${id} is not found`)
 
   return category
 }
@@ -65,7 +65,7 @@ async function updateCategoryService(id, data) {
     return updated
   } catch (err) {
     if (err.code === "P2025") {
-      throw new ApiError(`Category with this id: ${id} is not found`, 404)
+      throw new NotFoundError(`Category with this id: ${id} is not found`)
     }
 
     throw err
@@ -87,7 +87,7 @@ async function deactivateCategoryService(id) {
     })
   } catch (err) {
     if (err.code === "P2025") {
-      throw new ApiError(`Category with this id: ${id} is not found`, 404)
+      throw new NotFoundError(`Category with this id: ${id} is not found`)
     }
 
     throw err
@@ -109,7 +109,7 @@ async function activateCategoryService(id) {
     })
   } catch (err) {
     if (err.code === "P2025") {
-      throw new ApiError(`Category with this id: ${id} is not found`, 404)
+      throw new NotFoundError(`Category with this id: ${id} is not found`)
     }
 
     throw err

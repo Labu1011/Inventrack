@@ -1,15 +1,24 @@
 import { prisma } from "../lib/prisma-client.js"
 import bcrypt from "bcrypt"
 import crypto from "crypto"
-import { hashToken, signAccessToken } from "../utils/tokens.js"
-import ApiError from "../utils/apiError.js"
+import {
+  hashToken,
+  signAccessToken,
+  verifyAccessToken,
+} from "../utils/tokens.js"
+import {
+  ApiError,
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../utils/apiError.js"
 
 async function authenticate({ email, password }) {
   const user = await prisma.user.findUnique({ where: { email } })
-  if (!user) throw new ApiError("Invalid email or password", 401)
+  if (!user) throw new UnauthorizedError("Invalid email or password")
 
   const isMatch = await bcrypt.compare(password, user.password)
-  if (!isMatch) throw new ApiError("Invalid email or password", 401)
+  if (!isMatch) throw new UnauthorizedError("Invalid email or password")
 
   const payload = { sub: user.id, role: user.role }
   const accessToken = signAccessToken(payload)
@@ -29,14 +38,21 @@ async function authenticate({ email, password }) {
   return { accessToken, refreshToken, user }
 }
 
-async function getMe(payload) {
+async function getMe(authHeader) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new UnauthorizedError("Missing or invalid token")
+  }
+
+  const token = authHeader.split(" ")[1]
+  const payload = verifyAccessToken(token)
+
   const user = await prisma.user.findUnique({
     where: { id: payload.sub },
     select: { id: true, name: true, email: true, role: true, createdAt: true },
   })
 
   if (!user) {
-    throw new ApiError("User not found", 404)
+    throw new NotFoundError("User not found")
   }
 
   return user
@@ -80,14 +96,14 @@ async function rotateRefreshToken(oldToken) {
     where: { hashedToken: oldToken },
   })
 
-  if (!stored) throw new ApiError("Invalid refresh token", 401)
+  if (!stored) throw new UnauthorizedError("Invalid refresh token")
 
   if (stored.revoked) {
-    throw new ApiError("Refresh token has been revoked", 401)
+    throw new UnauthorizedError("Refresh token has been revoked")
   }
 
   if (stored.expiresAt < new Date()) {
-    throw new ApiError("Refresh token expired", 401)
+    throw new UnauthorizedError("Refresh token expired")
   }
 
   await prisma.refreshToken.update({
@@ -98,7 +114,7 @@ async function rotateRefreshToken(oldToken) {
   const user = await prisma.user.findUnique({ where: { id: stored.userId } })
 
   if (!user) {
-    throw new ApiError("User not found", 404)
+    throw new NotFoundError("User not found")
   }
 
   const payload = { sub: user.id, role: user.role }
@@ -123,7 +139,7 @@ async function createUserService(data) {
   })
 
   if (userExists) {
-    throw new ApiError("User with this email already exists", 409)
+    throw new ConflictError("User with this email already exists")
   }
 
   const hashedPassword = await hashToken(data.password)
@@ -153,7 +169,7 @@ async function registerUserService(data) {
   })
 
   if (userExists) {
-    throw new ApiError("User with this email already exists", 409)
+    throw new ConflictError("User with this email already exists")
   }
 
   const hashedPassword = await hashToken(data.password)

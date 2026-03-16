@@ -9,10 +9,8 @@ import {
   registerUserService,
   rotateRefreshToken,
 } from "../services/auth.service.js"
-import { formatZodError } from "../utils/formatZodError.js"
-import { verifyAccessToken } from "../utils/tokens.js"
 
-async function login(req, res) {
+async function login(req, res, next) {
   try {
     const { email, password } = loginSchema.parse(req.body)
     const { accessToken, refreshToken, user } = await authenticate({
@@ -38,18 +36,11 @@ async function login(req, res) {
         accessToken,
       })
   } catch (err) {
-    const zodError = formatZodError(err)
-    if (zodError) {
-      return res.status(400).json(zodError)
-    }
-
-    return res.status(err.status || 400).json({
-      message: err.message || "Failed to login",
-    })
+    next(err)
   }
 }
 
-async function refresh(req, res) {
+async function refresh(req, res, next) {
   try {
     const oldToken = req.cookies?.refreshToken
 
@@ -67,9 +58,7 @@ async function refresh(req, res) {
       })
       .json({ accessToken })
   } catch (err) {
-    return res
-      .status(err.status || 401)
-      .json({ message: err.message || "Invalid refresh token" })
+    next(err)
   }
 }
 
@@ -93,27 +82,19 @@ async function logoutAll(req, res) {
   return res.status(200).json({ message: "Logged out from all devices" })
 }
 
-async function me(req, res) {
+async function me(req, res, next) {
   try {
     const authHeader = req.headers.authorization
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Missing or invalid token" })
-    }
 
-    const token = authHeader.split(" ")[1]
-    const payload = verifyAccessToken(token)
+    const user = await getMe(authHeader)
 
-    const user = await getMe(payload)
-
-    return res.json({ user })
+    return res.json({ data: { user } })
   } catch (err) {
-    return res
-      .status(err.status || 400)
-      .json({ message: err.message || "Invalid or expired token" })
+    next(err)
   }
 }
 
-async function createUser(req, res) {
+async function createUser(req, res, next) {
   try {
     const parsed = createUserSchema.parse(req.body)
 
@@ -124,18 +105,11 @@ async function createUser(req, res) {
       user,
     })
   } catch (err) {
-    const zodError = formatZodError(err)
-    if (zodError) {
-      return res.status(400).json(zodError)
-    }
-
-    return res.status(err.status || 400).json({
-      message: err.message || "Failed to create user",
-    })
+    next(err)
   }
 }
 
-async function registerUser(req, res) {
+async function registerUser(req, res, next) {
   try {
     const parsed = registerUserSchema.parse(req.body)
 
@@ -146,14 +120,7 @@ async function registerUser(req, res) {
       user,
     })
   } catch (err) {
-    const zodError = formatZodError(err)
-    if (zodError) {
-      return res.status(400).json(zodError)
-    }
-
-    return res.status(err.status || 400).json({
-      message: err.message || "Failed to create user",
-    })
+    next(err)
   }
 }
 

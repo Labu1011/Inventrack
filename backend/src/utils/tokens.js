@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken"
 import bcrypt from "bcrypt"
+import { UnauthorizedError } from "./apiError.js"
 
 const ACCESS_EXP = process.env.ACCESS_EXP || "30s"
 const REFRESH_EXP = process.env.REFRESH_EXP || "1d"
@@ -16,7 +17,11 @@ function signRefreshToken(payload) {
 }
 
 function verifyAccessToken(token) {
-  return jwt.verify(token, ACCESS_TOKEN_SECRET)
+  try {
+    return jwt.verify(token, ACCESS_TOKEN_SECRET)
+  } catch (err) {
+    throw new UnauthorizedError("Invalid or expired access token")
+  }
 }
 
 function verifyRefreshToken(token) {

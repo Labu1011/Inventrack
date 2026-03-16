@@ -7,9 +7,8 @@ import {
   getCategoryService,
   updateCategoryService,
 } from "../services/category.service.js"
-import { formatZodError } from "../utils/formatZodError.js"
 
-async function createCategory(req, res) {
+async function createCategory(req, res, next) {
   try {
     const parsed = categorySchema.parse(req.body)
 
@@ -20,19 +19,11 @@ async function createCategory(req, res) {
       category,
     })
   } catch (err) {
-    const zodError = formatZodError(err)
-
-    if (zodError) {
-      return res.status(400).json(zodError)
-    }
-
-    return res
-      .status(err.status || 400)
-      .json({ message: err.message || "Failed to create the category" })
+    next(err)
   }
 }
 
-async function getCategories(req, res) {
+async function getCategories(req, res, next) {
   try {
     const categories = await getCategoriesService()
 
@@ -40,26 +31,22 @@ async function getCategories(req, res) {
       categories,
     })
   } catch (err) {
-    return res.status(err.status || 500).json({
-      message: err.message || "Internal server error",
-    })
+    next(err)
   }
 }
 
-async function getCategory(req, res) {
+async function getCategory(req, res, next) {
   try {
     const id = req.params.id
     const category = await getCategoryService(id)
 
     res.status(200).json({ category })
   } catch (err) {
-    return res
-      .status(err.status || 500)
-      .json({ message: err.message || "Internal server error" })
+    next(err)
   }
 }
 
-async function updateCategory(req, res) {
+async function updateCategory(req, res, next) {
   try {
     const id = req.params.id
     const parsed = categorySchema.parse(req.body)
@@ -70,32 +57,22 @@ async function updateCategory(req, res) {
       .status(200)
       .json({ message: "Updated category successfully", category: updated })
   } catch (err) {
-    const zodError = formatZodError(err)
-
-    if (zodError) {
-      return res.status(400).json(zodError)
-    }
-
-    return res.status(err.status || 500).json({
-      message: err.message || "Internal server error",
-    })
+    next(err)
   }
 }
 
-async function deactivateCategory(req, res) {
+async function deactivateCategory(req, res, next) {
   try {
     const id = req.params.id
     await deactivateCategoryService(id)
 
     res.status(200).json({ message: "Category is deactivated successfully" })
   } catch (err) {
-    return res.status(err.status || 500).json({
-      message: err.message || "Internal server error",
-    })
+    next(err)
   }
 }
 
-async function activateCategory(req, res) {
+async function activateCategory(req, res, next) {
   try {
     const id = req.params.id
 
@@ -103,9 +80,7 @@ async function activateCategory(req, res) {
 
     res.status(200).json({ message: "Category is activated successfully" })
   } catch (err) {
-    return res.status(err.status || 500).json({
-      message: err.message || "Internal server error",
-    })
+    next(err)
   }
 }
 
