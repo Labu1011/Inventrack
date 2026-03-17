@@ -9,6 +9,7 @@ import {
   registerUserService,
   rotateRefreshToken,
 } from "../services/auth.service.js"
+import { successResponse } from "../utils/successResponse.js"
 
 async function login(req, res, next) {
   try {
@@ -25,16 +26,20 @@ async function login(req, res, next) {
         sameSite: "strict",
         maxAge: 24 * 60 * 60 * 1000,
       })
-      .json({
-        message: "Login successful",
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-        },
-        accessToken,
-      })
+      .json(
+        successResponse(
+          {
+            user: {
+              id: user.id,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+            },
+            accessToken,
+          },
+          "Login successful",
+        ),
+      )
   } catch (err) {
     next(err)
   }
@@ -56,7 +61,7 @@ async function refresh(req, res, next) {
         sameSite: "strict",
         maxAge: 24 * 60 * 60 * 1000,
       })
-      .json({ accessToken })
+      .json(successResponse({ accessToken }))
   } catch (err) {
     next(err)
   }
@@ -66,20 +71,27 @@ async function logout(req, res) {
   const token = req.cookies?.refreshToken
 
   if (token) await logoutByToken(token)
-  res.clearCookie("refreshToken").status(200).json({ message: "Logged out" })
+  res
+    .clearCookie("refreshToken")
+    .status(200)
+    .json(successResponse(null, "Logged out"))
 }
 
 async function logoutAll(req, res) {
   const token = req.cookies?.refreshToken
   if (!token) {
     res.clearCookie("refreshToken")
-    return res.status(200).json({ message: "Logged out from all devices" })
+    return res
+      .status(200)
+      .json(successResponse(null, "Logged out from all devices"))
   }
 
   await logoutAllSessions(token)
   res.clearCookie("refreshToken")
 
-  return res.status(200).json({ message: "Logged out from all devices" })
+  return res
+    .status(200)
+    .json(successResponse(null, "Logged out from all devices"))
 }
 
 async function me(req, res, next) {
@@ -88,7 +100,7 @@ async function me(req, res, next) {
 
     const user = await getMe(authHeader)
 
-    return res.json({ data: { user } })
+    return res.json(successResponse({ user }))
   } catch (err) {
     next(err)
   }
@@ -100,10 +112,9 @@ async function createUser(req, res, next) {
 
     const user = await createUserService(parsed)
 
-    return res.status(200).json({
-      message: "User created successfully",
-      user,
-    })
+    return res
+      .status(200)
+      .json(successResponse({ user }, "User created successfully"))
   } catch (err) {
     next(err)
   }
@@ -115,10 +126,9 @@ async function registerUser(req, res, next) {
 
     const user = await registerUserService(parsed)
 
-    return res.status(200).json({
-      message: "User created successfully",
-      user,
-    })
+    return res
+      .status(200)
+      .json(successResponse({ user }, "User created successfully"))
   } catch (err) {
     next(err)
   }

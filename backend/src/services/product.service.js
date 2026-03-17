@@ -99,16 +99,14 @@ async function getProductsByCategoryService(id, page, limit, search) {
   const totalPages = Math.ceil(totalCount / limit)
 
   return {
-    data: {
-      products,
-      meta: {
-        totalCount,
-        totalPages,
-        currentPage: page,
-        limit,
-        hasNextPage: page < totalPages,
-        hasPrevPage: page > 1,
-      },
+    products,
+    meta: {
+      totalCount,
+      totalPages,
+      currentPage: page,
+      limit,
+      hasNextPage: page < totalPages,
+      hasPrevPage: page > 1,
     },
   }
 }

@@ -14,6 +14,12 @@ class UnauthorizedError extends ApiError {
   }
 }
 
+class ForbiddenError extends ApiError {
+  constructor(message = "Forbidden") {
+    super(message, 403, "FORBIDDEN")
+  }
+}
+
 class NotFoundError extends ApiError {
   constructor(message = "Resource not found") {
     super(message, 404, "NOT_FOUND")
@@ -35,6 +41,7 @@ class ConflictError extends ApiError {
 export {
   ApiError,
   UnauthorizedError,
+  ForbiddenError,
   NotFoundError,
   BadRequestError,
   ConflictError,
