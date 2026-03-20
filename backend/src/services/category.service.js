@@ -7,7 +7,7 @@ async function createCategoryService(data) {
   })
 
   if (categoryExists) {
-    throw new ConflictError("This category already exists")
+    throw new ConflictError("This category already exists.")
   }
 
   const category = await prisma.category.create({
@@ -48,7 +48,7 @@ async function getCategoryService(id) {
   })
 
   if (!category)
-    throw new NotFoundError(`Category with this id: ${id} is not found`)
+    throw new NotFoundError(`Category with this id: ${id} is not found.`)
 
   return category
 }
@@ -65,7 +65,7 @@ async function updateCategoryService(id, data) {
     return updated
   } catch (err) {
     if (err.code === "P2025") {
-      throw new NotFoundError(`Category with this id: ${id} is not found`)
+      throw new NotFoundError(`Category with this id: ${id} is not found.`)
     }
 
     throw err
@@ -74,7 +74,7 @@ async function updateCategoryService(id, data) {
 
 async function deactivateCategoryService(id) {
   try {
-    await prisma.category.update({
+    const res = await prisma.category.update({
       where: { id: id },
       data: {
         isActive: false,
@@ -85,9 +85,11 @@ async function deactivateCategoryService(id) {
         isActive: true,
       },
     })
+
+    return res
   } catch (err) {
     if (err.code === "P2025") {
-      throw new NotFoundError(`Category with this id: ${id} is not found`)
+      throw new NotFoundError(`Category with this id: ${id} is not found.`)
     }
 
     throw err
@@ -96,7 +98,7 @@ async function deactivateCategoryService(id) {
 
 async function activateCategoryService(id) {
   try {
-    await prisma.category.update({
+    const res = await prisma.category.update({
       where: { id: id },
       data: {
         isActive: true,
@@ -107,9 +109,11 @@ async function activateCategoryService(id) {
         isActive: true,
       },
     })
+
+    return res
   } catch (err) {
     if (err.code === "P2025") {
-      throw new NotFoundError(`Category with this id: ${id} is not found`)
+      throw new NotFoundError(`Category with this id: ${id} is not found.`)
     }
 
     throw err

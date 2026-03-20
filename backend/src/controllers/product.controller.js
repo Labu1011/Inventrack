@@ -1,11 +1,15 @@
 import {
   createProductSchema,
   productPaginationSchema,
+  updateProductSchema,
 } from "../dtos/product.dto.js"
 import {
   createProductService,
+  deleteProductService,
   getProductsByCategoryService,
   getProductsService,
+  restoreProductService,
+  updateProductService,
 } from "../services/product.service.js"
 import { successResponse } from "../utils/successResponse.js"
 
@@ -52,13 +56,57 @@ async function getProductsByCategory(req, res, next) {
   }
 }
 
-async function updateProduct(req, res) {}
-
-async function deactivateProduct(req, res) {
+async function updateProduct(req, res, next) {
   try {
-    const id = req.params?.id
-    await deactivateProduct()
-  } catch (err) {}
+    const id = req.params.id
+    const parsed = updateProductSchema.parse(req.body)
+
+    const updated = await updateProductService(id, parsed)
+
+    res
+      .status(200)
+      .json(
+        successResponse({ category: updated }, "Updated product successfully"),
+      )
+  } catch (err) {
+    next(err)
+  }
+}
+
+async function deleteProduct(req, res, next) {
+  try {
+    const id = req.params.id
+    const result = await deleteProductService(id)
+
+    return res
+      .status(200)
+      .json(
+        successResponse(
+          { product: result },
+          "Product is deleted successfully.",
+        ),
+      )
+  } catch (err) {
+    next(err)
+  }
+}
+
+async function restoreProduct(req, res, next) {
+  try {
+    const id = req.params.id
+    const result = await restoreProductService(id)
+
+    return res
+      .status(200)
+      .json(
+        successResponse(
+          { product: result },
+          "Product has been restored successfully.",
+        ),
+      )
+  } catch (err) {
+    next(err)
+  }
 }
 
 export {
@@ -66,5 +114,6 @@ export {
   getProducts,
   getProductsByCategory,
   updateProduct,
-  deactivateProduct,
+  deleteProduct,
+  restoreProduct,
 }

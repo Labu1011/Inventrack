@@ -1,9 +1,10 @@
 import express from "express"
 import {
   createProduct,
-  deactivateProduct,
+  deleteProduct,
   getProducts,
   getProductsByCategory,
+  restoreProduct,
   updateProduct,
 } from "../controllers/product.controller.js"
 
@@ -13,6 +14,7 @@ router.post("/", createProduct)
 router.get("/", getProducts)
 router.get("/:categoryId", getProductsByCategory)
 router.patch("/:id", updateProduct)
-router.patch("/:id/deactivate", deactivateProduct)
+router.patch("/:id/delete", deleteProduct)
+router.patch("/:id/restore", restoreProduct)
 
 export default router

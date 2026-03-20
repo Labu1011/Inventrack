@@ -1,5 +1,10 @@
 import { prisma } from "../lib/prisma-client.js"
-import { ApiError, BadRequestError, ConflictError } from "../utils/apiError.js"
+import {
+  ApiError,
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+} from "../utils/apiError.js"
 
 async function createProductService(data) {
   try {
@@ -8,7 +13,7 @@ async function createProductService(data) {
     })
 
     if (!category || !category.isActive)
-      throw new BadRequestError("Category not found or inactive")
+      throw new BadRequestError("Category not found or inactive.")
 
     const product = await prisma.product.create({
       data,
@@ -23,7 +28,7 @@ async function createProductService(data) {
         "Product_sku_key",
       )
     ) {
-      throw new ConflictError("SKU must be unique")
+      throw new ConflictError("SKU must be unique.")
     }
 
     throw err
@@ -72,7 +77,7 @@ async function getProductsByCategoryService(id, page, limit, search) {
   })
 
   if (!category || !category.isActive)
-    throw new BadRequestError("Category not found or inactive")
+    throw new BadRequestError("Category not found or inactive.")
 
   const skip = (page - 1) * limit
 
@@ -111,14 +116,114 @@ async function getProductsByCategoryService(id, page, limit, search) {
   }
 }
 
-async function updateProductService(id, data) {}
+async function updateProductService(id, data) {
+  try {
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestError("No fields provided to update.")
+    }
 
-async function deactivateProductService() {}
+    const product = await prisma.product.findUnique({
+      where: { id },
+    })
+
+    if (!product)
+      throw new NotFoundError(`Product with this id: ${id} is not found.`)
+
+    if (!product.isActive)
+      throw new BadRequestError(
+        "This product has been deleted. Please restore it before making updates.",
+      )
+
+    if (data.categoryId && data.categoryId !== product.categoryId) {
+      const categoryExists = await prisma.category.findUnique({
+        where: { id: data.categoryId },
+      })
+
+      if (!categoryExists) throw new NotFoundError("Category does not exist.")
+      if (!categoryExists.isActive)
+        throw new BadRequestError(
+          "Cannot update category because it is inactive.",
+        )
+    }
+
+    const updated = await prisma.product.update({
+      where: { id },
+      data,
+    })
+
+    return updated
+  } catch (err) {
+    console.log(err.meta)
+    if (
+      err.code === "P2002" ||
+      (err.meta?.driverAdapterError?.cause?.kind ===
+        "UniqueConstraintViolation" &&
+        err.meta?.driverAdapterError?.cause?.originalMessage.includes("sku"))
+    ) {
+      throw new ConflictError("SKU must be unique.")
+    }
+
+    throw err
+  }
+}
+
+async function deleteProductService(id) {
+  try {
+    const res = await prisma.product.update({
+      where: { id, isActive: true },
+      data: {
+        isActive: false,
+      },
+      select: {
+        id: true,
+        name: true,
+        isActive: true,
+      },
+    })
+
+    return res
+  } catch (err) {
+    if (err.code === "P2025") {
+      throw new BadRequestError(
+        `Product with this id: ${id} is not found or already deleted.`,
+      )
+    }
+
+    throw err
+  }
+}
+
+async function restoreProductService(id) {
+  try {
+    const res = await prisma.product.update({
+      where: { id, isActive: false },
+      data: {
+        isActive: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        isActive: true,
+      },
+    })
+
+    return res
+  } catch (err) {
+    if (err.code === "P2025") {
+      throw new BadRequestError(
+        `Product with this id: ${id} is not found or already active.`,
+      )
+    }
+
+    throw err
+  }
+}
 
 export {
   createProductService,
   getProductsService,
   getProductsByCategoryService,
   updateProductService,
-  deactivateProductService,
+  deleteProductService,
+  restoreProductService,
 }

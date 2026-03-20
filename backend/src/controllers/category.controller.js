@@ -64,11 +64,16 @@ async function updateCategory(req, res, next) {
 async function deactivateCategory(req, res, next) {
   try {
     const id = req.params.id
-    await deactivateCategoryService(id)
+    const result = await deactivateCategoryService(id)
 
     res
       .status(200)
-      .json(successResponse(null, "Category is deactivated successfully"))
+      .json(
+        successResponse(
+          { category: result },
+          "Category is deactivated successfully",
+        ),
+      )
   } catch (err) {
     next(err)
   }
@@ -78,11 +83,16 @@ async function activateCategory(req, res, next) {
   try {
     const id = req.params.id
 
-    await activateCategoryService(id)
+    const result = await activateCategoryService(id)
 
     res
       .status(200)
-      .json(successResponse(null, "Category is activated successfully"))
+      .json(
+        successResponse(
+          { category: result },
+          "Category is activated successfully",
+        ),
+      )
   } catch (err) {
     next(err)
   }
