@@ -7,14 +7,20 @@ import {
   restoreProduct,
   updateProduct,
 } from "../controllers/product.controller.js"
+import { requireAuth, requireRole } from "../middlewares/auth.middleware.js"
 
 const router = express.Router()
 
-router.post("/", createProduct)
+router.post("/", requireAuth, requireRole("ADMIN"), createProduct)
 router.get("/", getProducts)
 router.get("/:categoryId", getProductsByCategory)
-router.patch("/:id", updateProduct)
-router.patch("/:id/delete", deleteProduct)
-router.patch("/:id/restore", restoreProduct)
+router.patch(
+  "/:id",
+  requireAuth,
+  requireRole(["ADMIN", "MANAGER"]),
+  updateProduct,
+)
+router.patch("/:id/delete", requireAuth, requireRole("ADMIN"), deleteProduct)
+router.patch("/:id/restore", requireAuth, requireRole("ADMIN"), restoreProduct)
 
 export default router

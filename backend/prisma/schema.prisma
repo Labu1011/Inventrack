@@ -20,6 +20,12 @@ enum Role {
   USER
 }
 
+enum StockMovementType {
+  IN
+  OUT
+  ADJUST
+}
+
 model User {
   id            String    @id @default(uuid())
   name          String
@@ -62,8 +68,21 @@ model Product {
   costPrice     Decimal
   sellingPrice  Decimal
   reorderLevel  Int
-  isActive      Boolean   @default(true)      
+  isActive      Boolean   @default(true)    
 
+  stockMovements  StockMovement[]  
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model StockMovement {
+  id            String    @id @default(uuid())
+  productId     String    
+  product       Product   @relation(fields: [productId], references: [id])
+  type          StockMovementType
+  quantity      Int
+  note          String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }

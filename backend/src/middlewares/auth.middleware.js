@@ -20,9 +20,11 @@ export async function requireAuth(req, res, next) {
   }
 }
 
-export function requireRole(role) {
+export function requireRole(roles) {
   return (req, res, next) => {
-    if (!req.user || req.user.role !== role) {
+    const allowedRoles = Array.isArray(roles) ? roles : [roles]
+
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
       next(new ForbiddenError())
       return
     }
