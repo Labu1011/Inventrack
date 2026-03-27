@@ -1,6 +1,5 @@
 import { prisma } from "../lib/prisma-client.js"
 import {
-  ApiError,
   BadRequestError,
   ConflictError,
   NotFoundError,
