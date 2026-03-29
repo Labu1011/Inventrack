@@ -9,6 +9,6 @@ const router = express.Router()
 router.use("/auth", authRoutes)
 router.use("/products", productRoutes)
 router.use("/categories", categoryRoutes)
-router.use("/stock-movements", stockMovementRoutes)
+router.use("/stock", stockMovementRoutes)
 
 export default router

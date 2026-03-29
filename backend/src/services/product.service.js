@@ -5,6 +5,21 @@ import {
   NotFoundError,
 } from "../utils/apiError.js"
 
+async function ensureActiveProduct(id) {
+  const product = await prisma.product.findUnique({
+    where: { id },
+  })
+
+  if (!product)
+    throw new NotFoundError(`Product with this id: ${id} is not found.`)
+
+  if (!product.isActive)
+    throw new BadRequestError(
+      "This product has been deleted. Please restore it before proceeding.",
+    )
+  return product
+}
+
 async function createProductService(data) {
   try {
     const category = await prisma.category.findUnique({
@@ -65,7 +80,7 @@ async function getProductsService(page, limit, search) {
       currentPage: page,
       limit,
       hasNextPage: page < totalPages,
-      hasPrevPage: page > 1,
+      hasPrevPage: page > 1 && page <= totalPages,
     },
   }
 }
@@ -121,17 +136,7 @@ async function updateProductService(id, data) {
       throw new BadRequestError("No fields provided to update.")
     }
 
-    const product = await prisma.product.findUnique({
-      where: { id },
-    })
-
-    if (!product)
-      throw new NotFoundError(`Product with this id: ${id} is not found.`)
-
-    if (!product.isActive)
-      throw new BadRequestError(
-        "This product has been deleted. Please restore it before making updates.",
-      )
+    const product = await ensureActiveProduct(id)
 
     if (data.categoryId && data.categoryId !== product.categoryId) {
       const categoryExists = await prisma.category.findUnique({
@@ -225,4 +230,5 @@ export {
   updateProductService,
   deleteProductService,
   restoreProductService,
+  ensureActiveProduct,
 }

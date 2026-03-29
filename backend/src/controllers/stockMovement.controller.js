@@ -1,6 +1,22 @@
 import { createStockMovementSchema } from "../dtos/stock.dto.js"
-import { createStockMovementService } from "../services/stockMovement.service.js"
+import {
+  createStockMovementService,
+  getAllStockMovementsService,
+  getCurrentStockLevelService,
+} from "../services/stockMovement.service.js"
 import { successResponse } from "../utils/successResponse.js"
+
+async function getCurrentStockLevel(req, res, next) {
+  try {
+    const productId = req.params.productId
+
+    const stockLevel = await getCurrentStockLevelService(productId)
+
+    res.status(200).json(successResponse({ stockLevel }))
+  } catch (err) {
+    next(err)
+  }
+}
 
 async function createStockMovement(req, res, next) {
   try {
@@ -21,6 +37,15 @@ async function createStockMovement(req, res, next) {
   }
 }
 
-async function getAllStockMovements(req, res) {}
+async function getAllStockMovements(req, res, next) {
+  try {
+    const queryParams = req.query
+    const stockHistory = await getAllStockMovementsService(queryParams)
 
-export { createStockMovement, getAllStockMovements }
+    res.status(200).json(successResponse(stockHistory))
+  } catch (err) {
+    next(err)
+  }
+}
+
+export { createStockMovement, getCurrentStockLevel, getAllStockMovements }
