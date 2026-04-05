@@ -26,12 +26,22 @@ enum StockMovementType {
   ADJUST
 }
 
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
 model User {
   id            String    @id @default(uuid())
   name          String
   email         String    @unique
   password      String  
   role          Role      @default(USER)
+  orders        Order[]
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   refreshTokens RefreshToken[]
@@ -58,18 +68,19 @@ model Category {
 }
 
 model Product {
-  id            String    @id @default(uuid())
-  name          String    
-  sku           String    @unique
-  categoryId    String    
-  category      Category  @relation(fields: [categoryId], references: [id])
+  id              String    @id @default(uuid())
+  name            String    
+  sku             String    @unique
+  categoryId      String    
+  category        Category  @relation(fields: [categoryId], references: [id])
 
-  unit          String    
-  costPrice     Decimal
-  sellingPrice  Decimal
-  reorderLevel  Int
-  isActive      Boolean   @default(true)    
+  unit            String    
+  costPrice       Decimal
+  sellingPrice    Decimal
+  reorderLevel    Int
+  isActive        Boolean   @default(true)    
 
+  orderItems      OrderItem[]
   stockMovements  StockMovement[]  
 
   createdAt     DateTime  @default(now())
@@ -80,9 +91,41 @@ model StockMovement {
   id            String    @id @default(uuid())
   productId     String    
   product       Product   @relation(fields: [productId], references: [id])
+
+  orderId       String?
+  order         Order?     @relation(fields: [orderId], references: [id])
+
   type          StockMovementType
   quantity      Int
   note          String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+}
+
+model Order {
+  id              String      @id @default(uuid())
+  orderNumber     Int         @unique @default(autoincrement())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+
+  status          OrderStatus @default(PENDING)
+  totalAmount     Decimal 
+
+  orderItems      OrderItem[]
+  stockMovements  StockMovement[]
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model OrderItem {
+  id            String      @id @default(uuid())
+  orderId       String
+  order         Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  productId     String
+  product       Product     @relation(fields: [productId], references: [id])
+
+  quantity      Int
+  unitPrice     Decimal
 }
