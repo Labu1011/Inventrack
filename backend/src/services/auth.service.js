@@ -20,7 +20,6 @@ async function authenticate({ email, password }) {
   const isMatch = await bcrypt.compare(password, user.password)
   if (!isMatch) throw new UnauthorizedError("Invalid email or password")
 
-  console.log(user)
   const payload = { sub: user.id, role: user.role }
   const accessToken = signAccessToken(payload)
 
@@ -98,7 +97,7 @@ async function rotateRefreshToken(oldToken) {
   // Random refresh token
   const refreshToken = crypto.randomBytes(40).toString("hex")
 
-  await authRepository.createRefreshToken(refreshToken, payload.sub)
+  await authRepository.createRefreshToken(refreshToken, user)
 
   return { accessToken, refreshToken }
 }

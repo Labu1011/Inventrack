@@ -1,51 +1,26 @@
-import { prisma } from "../lib/prisma-client.js"
-import { ApiError, ConflictError, NotFoundError } from "../utils/apiError.js"
+import { categoryRepository } from "../repositories/category.repository.js"
+import { ConflictError, NotFoundError } from "../utils/apiError.js"
 
 async function createCategoryService(data) {
-  const categoryExists = await prisma.category.findUnique({
-    where: { name: data?.name },
-  })
+  const categoryExists = await categoryRepository.findCategoryByName(data?.name)
 
   if (categoryExists) {
     throw new ConflictError("This category already exists.")
   }
 
-  const category = await prisma.category.create({
-    data: {
-      name: data.name,
-    },
-    select: {
-      id: true,
-      name: true,
-      isActive: true,
-      createdAt: true,
-    },
-  })
+  const category = await categoryRepository.createCategory(data)
 
   return category
 }
 
 async function getCategoriesService() {
-  const categories = await prisma.category.findMany({
-    where: { isActive: true },
-    select: {
-      id: true,
-      name: true,
-      isActive: true,
-      createdAt: true,
-      _count: {
-        select: { products: true },
-      },
-    },
-  })
+  const categories = await categoryRepository.findActiveCategories()
 
   return categories
 }
 
 async function getCategoryService(id) {
-  const category = await prisma.category.findFirst({
-    where: { id: id },
-  })
+  const category = await categoryRepository.findCategoryById(id)
 
   if (!category)
     throw new NotFoundError(`Category with this id: ${id} is not found.`)
@@ -55,12 +30,7 @@ async function getCategoryService(id) {
 
 async function updateCategoryService(id, data) {
   try {
-    const updated = await prisma.category.update({
-      where: { id: id },
-      data: {
-        name: data.name,
-      },
-    })
+    const updated = await categoryRepository.updateCategoryById(id, data)
 
     return updated
   } catch (err) {
@@ -74,17 +44,7 @@ async function updateCategoryService(id, data) {
 
 async function deactivateCategoryService(id) {
   try {
-    const res = await prisma.category.update({
-      where: { id: id },
-      data: {
-        isActive: false,
-      },
-      select: {
-        id: true,
-        name: true,
-        isActive: true,
-      },
-    })
+    const res = await categoryRepository.deactivateCategoryById(id)
 
     return res
   } catch (err) {
@@ -98,17 +58,7 @@ async function deactivateCategoryService(id) {
 
 async function activateCategoryService(id) {
   try {
-    const res = await prisma.category.update({
-      where: { id: id },
-      data: {
-        isActive: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        isActive: true,
-      },
-    })
+    const res = await categoryRepository.activateCategoryById(id)
 
     return res
   } catch (err) {

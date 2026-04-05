@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma-client.js"
+import { productRepository } from "../repositories/product.repository.js"
 import {
   BadRequestError,
   ConflictError,
@@ -6,9 +6,7 @@ import {
 } from "../utils/apiError.js"
 
 async function ensureActiveProduct(id) {
-  const product = await prisma.product.findUnique({
-    where: { id },
-  })
+  const product = await productRepository.findProductById(id)
 
   if (!product)
     throw new NotFoundError(`Product with this id: ${id} is not found.`)
@@ -22,16 +20,12 @@ async function ensureActiveProduct(id) {
 
 async function createProductService(data) {
   try {
-    const category = await prisma.category.findUnique({
-      where: { id: data.categoryId },
-    })
+    const category = await productRepository.findCategoryById(data.categoryId)
 
     if (!category || !category.isActive)
       throw new BadRequestError("Category not found or inactive.")
 
-    const product = await prisma.product.create({
-      data,
-    })
+    const product = await productRepository.createProduct(data)
 
     return product
   } catch (err) {
@@ -51,23 +45,14 @@ async function createProductService(data) {
 
 async function getProductsService(page, limit, search) {
   const skip = (page - 1) * limit
+  const where = {
+    isActive: true,
+    name: { contains: search, mode: "insensitive" },
+  }
 
   const [products, totalCount] = await Promise.all([
-    prisma.product.findMany({
-      where: {
-        isActive: true,
-        name: { contains: search, mode: "insensitive" },
-      },
-      skip: skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.product.count({
-      where: {
-        isActive: true,
-        name: { contains: search, mode: "insensitive" },
-      },
-    }),
+    productRepository.findManyProducts(where, skip, limit),
+    productRepository.countProducts(where),
   ])
 
   const totalPages = Math.ceil(totalCount / limit)
@@ -86,33 +71,21 @@ async function getProductsService(page, limit, search) {
 }
 
 async function getProductsByCategoryService(id, page, limit, search) {
-  const category = await prisma.category.findUnique({
-    where: { id: id },
-  })
+  const category = await productRepository.findCategoryById(id)
 
   if (!category || !category.isActive)
     throw new BadRequestError("Category not found or inactive.")
 
   const skip = (page - 1) * limit
+  const where = {
+    categoryId: id,
+    isActive: true,
+    name: { contains: search, mode: "insensitive" },
+  }
 
   const [products, totalCount] = await Promise.all([
-    prisma.product.findMany({
-      where: {
-        categoryId: id,
-        isActive: true,
-        name: { contains: search, mode: "insensitive" },
-      },
-      skip: skip,
-      take: limit,
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.product.count({
-      where: {
-        categoryId: id,
-        isActive: true,
-        name: { contains: search, mode: "insensitive" },
-      },
-    }),
+    productRepository.findManyProducts(where, skip, limit),
+    productRepository.countProducts(where),
   ])
 
   const totalPages = Math.ceil(totalCount / limit)
@@ -139,9 +112,9 @@ async function updateProductService(id, data) {
     const product = await ensureActiveProduct(id)
 
     if (data.categoryId && data.categoryId !== product.categoryId) {
-      const categoryExists = await prisma.category.findUnique({
-        where: { id: data.categoryId },
-      })
+      const categoryExists = await productRepository.findCategoryById(
+        data.categoryId,
+      )
 
       if (!categoryExists) throw new NotFoundError("Category does not exist.")
       if (!categoryExists.isActive)
@@ -150,10 +123,7 @@ async function updateProductService(id, data) {
         )
     }
 
-    const updated = await prisma.product.update({
-      where: { id },
-      data,
-    })
+    const updated = await productRepository.updateProductById(id, data)
 
     return updated
   } catch (err) {
@@ -173,17 +143,7 @@ async function updateProductService(id, data) {
 
 async function deleteProductService(id) {
   try {
-    const res = await prisma.product.update({
-      where: { id, isActive: true },
-      data: {
-        isActive: false,
-      },
-      select: {
-        id: true,
-        name: true,
-        isActive: true,
-      },
-    })
+    const res = await productRepository.deactivateProductById(id)
 
     return res
   } catch (err) {
@@ -199,17 +159,7 @@ async function deleteProductService(id) {
 
 async function restoreProductService(id) {
   try {
-    const res = await prisma.product.update({
-      where: { id, isActive: false },
-      data: {
-        isActive: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        isActive: true,
-      },
-    })
+    const res = await productRepository.activateProductById(id)
 
     return res
   } catch (err) {
