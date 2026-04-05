@@ -1,19 +1,12 @@
-import { prisma } from "../lib/prisma-client.js"
+import { stockMovementRepository } from "../repositories/stockMovement.repository.js"
 import { BadRequestError } from "../utils/apiError.js"
 import { ensureActiveProduct } from "./product.service.js"
 
 async function getCurrentStockLevelService(productId) {
   await ensureActiveProduct(productId)
 
-  const getStockLevel = await prisma.stockMovement.groupBy({
-    by: "type",
-    where: {
-      productId,
-    },
-    _sum: {
-      quantity: true,
-    },
-  })
+  const getStockLevel =
+    await stockMovementRepository.groupStockLevelByType(productId)
 
   const totals = getStockLevel.reduce(
     (acc, curr) => {
@@ -40,14 +33,8 @@ async function createStockMovementService(data) {
         )
     }
 
-    const stockMovement = await prisma.stockMovement.create({
-      data: {
-        productId: data.productId,
-        type: data.type,
-        quantity: data.quantity,
-        note: data.note ?? undefined,
-      },
-    })
+    const stockMovement =
+      await stockMovementRepository.createStockMovement(data)
 
     return stockMovement
   } catch (err) {
@@ -90,26 +77,8 @@ async function getAllStockMovementsService(queryParams) {
   }
 
   const [stockHistory, count] = await Promise.all([
-    await prisma.stockMovement.findMany({
-      where,
-      include: {
-        product: {
-          select: {
-            name: true,
-            sku: true,
-            category: {
-              select: {
-                name: true,
-              },
-            },
-          },
-        },
-      },
-      take: limit,
-      skip,
-      orderBy: { createdAt: "desc" },
-    }),
-    await prisma.stockMovement.count({ where }),
+    await stockMovementRepository.findManyStockMovements(where, limit, skip),
+    await stockMovementRepository.countStockMovements(where),
   ])
 
   const totalPages = Math.ceil(count / limit)
