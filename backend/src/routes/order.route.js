@@ -3,7 +3,7 @@ import {
   cancelOrder,
   getOrderHistory,
   placeOrder,
-} from "../controllers/order.controller"
+} from "../controllers/order.controller.js"
 
 const router = express.Router()
 
