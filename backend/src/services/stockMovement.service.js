@@ -2,13 +2,8 @@ import { stockMovementRepository } from "../repositories/stockMovement.repositor
 import { BadRequestError } from "../utils/apiError.js"
 import { ensureActiveProduct } from "./product.service.js"
 
-async function getCurrentStockLevelService(productId) {
-  await ensureActiveProduct(productId)
-
-  const getStockLevel =
-    await stockMovementRepository.groupStockLevelByType(productId)
-
-  const totals = getStockLevel.reduce(
+function calculateCurrentStock(aggregation) {
+  const totals = aggregation.reduce(
     (acc, curr) => {
       acc[curr.type] = curr._sum.quantity || 0
       return acc
@@ -16,7 +11,16 @@ async function getCurrentStockLevelService(productId) {
     { IN: 0, OUT: 0, ADJUST: 0 },
   )
 
-  const currentStock = totals.IN + totals.ADJUST - totals.OUT
+  return totals.IN + totals.ADJUST - totals.OUT
+}
+
+async function getCurrentStockLevelService(productId) {
+  await ensureActiveProduct(productId)
+
+  const getStockLevel =
+    await stockMovementRepository.groupStockLevelByType(productId)
+
+  const currentStock = calculateCurrentStock(getStockLevel)
   return currentStock
 }
 
@@ -97,6 +101,7 @@ async function getAllStockMovementsService(queryParams) {
 }
 
 export {
+  calculateCurrentStock,
   createStockMovementService,
   getCurrentStockLevelService,
   getAllStockMovementsService,

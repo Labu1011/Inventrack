@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma-client.js"
 
-async function groupStockLevelByType(productId) {
-  return prisma.stockMovement.groupBy({
+async function groupStockLevelByType(productId, tx = prisma) {
+  return tx.stockMovement.groupBy({
     by: "type",
     where: {
       productId,
@@ -12,10 +12,11 @@ async function groupStockLevelByType(productId) {
   })
 }
 
-async function createStockMovement(data) {
-  return prisma.stockMovement.create({
+async function createStockMovement(data, tx = prisma) {
+  return tx.stockMovement.create({
     data: {
       productId: data.productId,
+      orderId: data.orderId ?? undefined,
       type: data.type,
       quantity: data.quantity,
       note: data.note ?? undefined,
