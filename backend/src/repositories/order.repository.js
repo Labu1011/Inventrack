@@ -6,7 +6,13 @@ async function placeOrder(userId, items, totalAmount) {
 
 async function createOrder(data, tx = prisma) {
   return tx.order.create({
-    data,
+    data: {
+      user: {
+        connect: { id: data.userId },
+      },
+      status: data.status,
+      totalAmount: data.totalAmount,
+    },
   })
 }
 
@@ -29,9 +35,59 @@ async function findOrderById(orderId, tx = prisma) {
   })
 }
 
+async function updateOrderStatus(orderId, status, tx = prisma) {
+  return tx.order.update({
+    where: {
+      id: orderId,
+    },
+    data: {
+      status,
+    },
+  })
+}
+
+async function updateOrderStatusIfCancellable(orderId, userId, tx = prisma) {
+  return tx.order.updateMany({
+    where: {
+      id: orderId,
+      userId,
+      status: {
+        in: ["PENDING", "CONFIRMED"],
+      },
+    },
+    data: {
+      status: "CANCELLED",
+    },
+  })
+}
+
+async function findOrderDetailById(orderId, tx = prisma) {
+  return tx.order.findUnique({
+    where: {
+      id: orderId,
+    },
+    include: {
+      orderItems: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+            },
+          },
+        },
+      },
+    },
+  })
+}
+
 export const orderRepository = {
   placeOrder,
   createOrder,
   createOrderItems,
   findOrderById,
+  findOrderDetailById,
+  updateOrderStatus,
+  updateOrderStatusIfCancellable,
 }

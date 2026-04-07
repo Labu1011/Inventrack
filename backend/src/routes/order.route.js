@@ -9,7 +9,7 @@ import { requireAuth } from "../middlewares/auth.middleware.js"
 const router = express.Router()
 
 router.post("/", requireAuth, placeOrder)
-router.patch("/:id/cancel", cancelOrder)
+router.patch("/:id/cancel", requireAuth, cancelOrder)
 router.get("/", getOrderHistory)
 
 export default router

@@ -2,7 +2,11 @@ import { prisma } from "../lib/prisma-client.js"
 import { orderRepository } from "../repositories/order.repository.js"
 import { productRepository } from "../repositories/product.repository.js"
 import { stockMovementRepository } from "../repositories/stockMovement.repository.js"
-import { BadRequestError, NotFoundError } from "../utils/apiError.js"
+import {
+  BadRequestError,
+  ForbiddenError,
+  NotFoundError,
+} from "../utils/apiError.js"
 import { calculateCurrentStock } from "./stockMovement.service.js"
 
 function aggregateItemsByProduct(items) {
@@ -25,14 +29,17 @@ async function placeOrderTx(userId, items, tx) {
   let totalAmount = 0
 
   for (const item of normalizedItems) {
-    const product = await productRepository.findActiveProductById(
-      item.productId,
-      tx,
-    )
+    const product = await productRepository.findProductById(item.productId, tx)
     if (!product)
       throw new NotFoundError(
-        `Product not found or inactive: ${item.productId}`,
+        "One or more items are unavailable. Please refresh your cart.",
       )
+
+    if (!product.isActive) {
+      throw new BadRequestError(
+        `The product ${product.name} is currently unavailable for purchase.`,
+      )
+    }
 
     const aggregation = await stockMovementRepository.groupStockLevelByType(
       item.productId,
@@ -43,7 +50,7 @@ async function placeOrderTx(userId, items, tx) {
 
     if (currentStock < item.quantity) {
       throw new BadRequestError(
-        `Insufficient stock for product ${item.productId}. Available: ${currentStock}, requested: ${item.quantity}`,
+        `Insufficient stock for product: ${product.name}. Available: ${currentStock}, requested: ${item.quantity}`,
       )
     }
 
@@ -102,4 +109,64 @@ async function placeOrderService(userId, items) {
   }
 }
 
-export { placeOrderService }
+async function cancelOrderService(id, userId) {
+  if (!userId) throw new BadRequestError("User is required.")
+
+  try {
+    return await prisma.$transaction(async (tx) => {
+      const order = await orderRepository.findOrderById(id, tx)
+
+      if (!order) throw new NotFoundError("This order is not found.")
+
+      if (order.userId !== userId) {
+        throw new ForbiddenError("You are not allowed to cancel this order.")
+      }
+
+      const updated = await orderRepository.updateOrderStatusIfCancellable(
+        order.id,
+        userId,
+        tx,
+      )
+
+      if (updated.count === 0) {
+        const latest = await orderRepository.findOrderById(order.id, tx)
+
+        if (!latest) throw new NotFoundError("This order is not found.")
+        if (latest.status === "CANCELLED") {
+          throw new BadRequestError("Order is already cancelled.")
+        }
+
+        throw new BadRequestError(
+          `This order #${order.orderNumber} is ${order.status.toLowerCase()}. You cannot cancel this order.`,
+        )
+      }
+
+      const stockMovements =
+        await stockMovementRepository.findStockOutMovementsByOrderId(
+          order.id,
+          tx,
+        )
+
+      for (const stockMovement of stockMovements) {
+        const data = {
+          orderId: stockMovement.orderId,
+          productId: stockMovement.productId,
+          type: "IN",
+          quantity: stockMovement.quantity,
+          note: `Order #${order.orderNumber} cancelled.`,
+        }
+
+        await stockMovementRepository.createStockMovement(data, tx)
+      }
+
+      return orderRepository.findOrderDetailById(order.id, tx)
+    })
+  } catch (err) {
+    if (err?.code === "P2034") {
+      throw new BadRequestError("Order update conflict. Please try again.")
+    }
+    throw err
+  }
+}
+
+export { placeOrderService, cancelOrderService }

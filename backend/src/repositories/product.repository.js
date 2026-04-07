@@ -1,7 +1,7 @@
 import { prisma } from "../lib/prisma-client.js"
 
-async function findProductById(id) {
-  return prisma.product.findUnique({
+async function findProductById(id, tx = prisma) {
+  return tx.product.findUnique({
     where: { id },
   })
 }

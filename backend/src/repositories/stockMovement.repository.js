@@ -50,9 +50,19 @@ async function countStockMovements(where) {
   return prisma.stockMovement.count({ where })
 }
 
+async function findStockOutMovementsByOrderId(orderId, tx = prisma) {
+  return tx.stockMovement.findMany({
+    where: {
+      orderId,
+      type: "OUT",
+    },
+  })
+}
+
 export const stockMovementRepository = {
   groupStockLevelByType,
   createStockMovement,
   findManyStockMovements,
+  findStockOutMovementsByOrderId,
   countStockMovements,
 }

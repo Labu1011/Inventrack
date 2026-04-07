@@ -12,3 +12,7 @@ export const placeOrderSchema = z.object({
     .array(orderItemSchema)
     .min(1, "Order must contain at least one item."),
 })
+
+export const cancelOrderSchema = z.object({
+  id: z.uuid("Invalid order ID."),
+})
