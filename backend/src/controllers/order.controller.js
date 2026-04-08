@@ -1,7 +1,12 @@
-import { cancelOrderSchema, placeOrderSchema } from "../dtos/order.dto.js"
+import {
+  cancelOrderSchema,
+  placeOrderSchema,
+  updateOrderStatusSchema,
+} from "../dtos/order.dto.js"
 import {
   cancelOrderService,
   placeOrderService,
+  updateOrderStatusService,
 } from "../services/order.service.js"
 import { successResponse } from "../utils/successResponse.js"
 
@@ -35,6 +40,31 @@ async function cancelOrder(req, res, next) {
   }
 }
 
+async function updateOrderStatus(req, res, next) {
+  try {
+    const parsed = updateOrderStatusSchema.parse({
+      id: req.params.id,
+      status: req.body.status,
+    })
+
+    const updatedOrder = await updateOrderStatusService(
+      parsed.id,
+      parsed.status,
+    )
+
+    return res
+      .status(200)
+      .json(
+        successResponse(
+          { order: updatedOrder },
+          "Order status updated successfully.",
+        ),
+      )
+  } catch (err) {
+    next(err)
+  }
+}
+
 async function getOrderHistory(req, res, next) {}
 
-export { placeOrder, cancelOrder, getOrderHistory }
+export { placeOrder, cancelOrder, getOrderHistory, updateOrderStatus }

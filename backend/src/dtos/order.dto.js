@@ -16,3 +16,10 @@ export const placeOrderSchema = z.object({
 export const cancelOrderSchema = z.object({
   id: z.uuid("Invalid order ID."),
 })
+
+export const updateOrderStatusSchema = z.object({
+  id: z.uuid("Invalid order ID."),
+  status: z.enum(["CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"]),
+})
+
+export const orderHistoryQuerySchema = z.object({})

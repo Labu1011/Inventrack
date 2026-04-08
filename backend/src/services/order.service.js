@@ -169,4 +169,34 @@ async function cancelOrderService(id, userId) {
   }
 }
 
-export { placeOrderService, cancelOrderService }
+function isValidStatusTransition(from, to) {
+  const allowed = {
+    PENDING: ["CONFIRMED", "CANCELLED"],
+    CONFIRMED: ["SHIPPED", "CANCELLED"],
+    SHIPPED: ["DELIVERED"],
+    DELIVERED: [],
+    CANCELLED: [],
+  }
+
+  return allowed[from]?.includes(to) || false
+}
+
+async function updateOrderStatusService(orderId, nextStatus) {
+  const order = await orderRepository.findOrderById(orderId)
+
+  if (!order) throw new NotFoundError("Order not found.")
+  if (order.status === nextStatus) {
+    throw new BadRequestError(`Order is already ${nextStatus}`)
+  }
+
+  if (!isValidStatusTransition(order.status, nextStatus)) {
+    throw new BadRequestError(
+      `Cannot change order status from ${order.status} to ${nextStatus}.`,
+    )
+  }
+
+  const updated = await orderRepository.updateOrderStatus(order.id, nextStatus)
+  return updated
+}
+
+export { placeOrderService, cancelOrderService, updateOrderStatusService }
