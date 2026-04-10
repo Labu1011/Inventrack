@@ -82,12 +82,28 @@ async function findOrderDetailById(orderId, tx = prisma) {
   })
 }
 
+async function getOrderHistory(where, take, skip) {
+  return prisma.order.findMany({
+    where,
+    take,
+    skip,
+  })
+}
+
+async function countOrders(where) {
+  return prisma.order.count({
+    where,
+  })
+}
+
 export const orderRepository = {
   placeOrder,
   createOrder,
   createOrderItems,
   findOrderById,
   findOrderDetailById,
+  getOrderHistory,
+  countOrders,
   updateOrderStatus,
   updateOrderStatusIfCancellable,
 }

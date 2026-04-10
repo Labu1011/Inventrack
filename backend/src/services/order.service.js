@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma-client.js"
+import { authRepository } from "../repositories/auth.repository.js"
 import { orderRepository } from "../repositories/order.repository.js"
 import { productRepository } from "../repositories/product.repository.js"
 import { stockMovementRepository } from "../repositories/stockMovement.repository.js"
@@ -6,6 +7,7 @@ import {
   BadRequestError,
   ForbiddenError,
   NotFoundError,
+  UnauthorizedError,
 } from "../utils/apiError.js"
 import { calculateCurrentStock } from "./stockMovement.service.js"
 
@@ -199,4 +201,42 @@ async function updateOrderStatusService(orderId, nextStatus) {
   return updated
 }
 
-export { placeOrderService, cancelOrderService, updateOrderStatusService }
+async function getOrderHistoryService(queryParams, user) {
+  if (!user) throw new UnauthorizedError("Please login and try again.")
+
+  const where = {
+    status: queryParams.status,
+    createdAt: { gte: queryParams.startDate, lte: queryParams.endDate },
+  }
+  const take = queryParams.limit
+  const skip = (queryParams.page - 1) * take
+
+  if (user?.role !== "ADMIN" && user?.role !== "MANAGER") {
+    where.userId = user.id
+  }
+  const [orders, totalCount] = await Promise.all([
+    orderRepository.getOrderHistory(where, take, skip),
+    orderRepository.countOrders(where),
+  ])
+
+  const totalPages = Math.ceil(totalCount / queryParams.limit)
+
+  return {
+    orders,
+    meta: {
+      totalCount,
+      totalPages,
+      currentPage: queryParams.page,
+      limit: queryParams.limit,
+      hasNextPage: queryParams.page >= 1 && queryParams.page < totalPages,
+      hasPrevPage: queryParams.page > 1 && queryParams.page <= totalPages,
+    },
+  }
+}
+
+export {
+  placeOrderService,
+  cancelOrderService,
+  updateOrderStatusService,
+  getOrderHistoryService,
+}
