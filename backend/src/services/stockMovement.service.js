@@ -47,42 +47,23 @@ async function createStockMovementService(data) {
 }
 
 async function getAllStockMovementsService(queryParams) {
-  const page = parseInt(queryParams.page, 10) || 1
-  const limit = parseInt(queryParams.limit, 10) || 10
+  const page = queryParams.page
+  const limit = queryParams.limit
 
   const skip = (page - 1) * limit
 
   const where = {}
-  if (queryParams.productId) where.productId = queryParams.productId
+
   if (queryParams.type) where.type = String(queryParams.type).toUpperCase()
 
   if (queryParams.startDate || queryParams.endDate) {
-    const createdAt = {}
-
-    if (queryParams.startDate) {
-      const start = new Date(queryParams.startDate)
-      if (isNaN(start)) throw new BadRequestError("Invalid startDate.")
-      createdAt.gte = start
-    }
-
-    if (queryParams.endDate) {
-      const end = new Date(queryParams.endDate)
-      if (isNaN(end)) throw new BadRequestError("Invalid endDate.")
-      createdAt.lte = end
-    }
-
-    if (createdAt.gte && createdAt.lte && createdAt.gte > createdAt.lte) {
-      throw new BadRequestError(
-        "Start date must be earlier than or equal to end date.",
-      )
-    }
-
+    const createdAt = { gte: queryParams.startDate, lte: queryParams.endDate }
     where.createdAt = createdAt
   }
 
   const [stockHistory, count] = await Promise.all([
-    await stockMovementRepository.findManyStockMovements(where, limit, skip),
-    await stockMovementRepository.countStockMovements(where),
+    stockMovementRepository.findManyStockMovements(where, limit, skip),
+    stockMovementRepository.countStockMovements(where),
   ])
 
   const totalPages = Math.ceil(count / limit)

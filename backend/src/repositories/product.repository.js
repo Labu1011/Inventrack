@@ -36,6 +36,18 @@ async function findManyProducts(where, skip, take) {
   })
 }
 
+async function findAllActiveProductsForDashboard() {
+  return prisma.product.findMany({
+    where: {
+      isActive: true,
+    },
+    select: {
+      id: true,
+      reorderLevel: true,
+    },
+  })
+}
+
 async function countProducts(where) {
   return prisma.product.count({
     where,
@@ -83,6 +95,7 @@ export const productRepository = {
   findCategoryById,
   createProduct,
   findManyProducts,
+  findAllActiveProductsForDashboard,
   countProducts,
   updateProductById,
   deactivateProductById,

@@ -1,4 +1,7 @@
-import { createStockMovementSchema } from "../dtos/stock.dto.js"
+import {
+  createStockMovementSchema,
+  getAllStockMovementsSchema,
+} from "../dtos/stock.dto.js"
 import {
   createStockMovementService,
   getAllStockMovementsService,
@@ -39,7 +42,8 @@ async function createStockMovement(req, res, next) {
 
 async function getAllStockMovements(req, res, next) {
   try {
-    const queryParams = req.query
+    const queryParams = getAllStockMovementsSchema.parse(req.query)
+
     const stockHistory = await getAllStockMovementsService(queryParams)
 
     res.status(200).json(successResponse(stockHistory))

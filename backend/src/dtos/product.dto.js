@@ -20,14 +20,8 @@ export const createProductSchema = z.object({
 })
 
 export const productPaginationSchema = z.object({
-  page: z
-    .string()
-    .optional()
-    .transform((val) => Math.max(1, parseInt(val || "1"))),
-  limit: z
-    .string()
-    .optional()
-    .transform((val) => Math.max(1, parseInt(val || "10"))),
+  page: z.coerce.number().min(1).default(1),
+  limit: z.coerce.number().min(1).max(100).default(10),
   search: z.string().optional(),
 })
 
