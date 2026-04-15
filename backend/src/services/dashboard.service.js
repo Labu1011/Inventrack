@@ -10,19 +10,17 @@ async function getDashboardSummaryService() {
       getLowStockProductsCount(),
     ])
 
-  let pendingOrders = 0
-  let confirmedOrders = 0
-  let shippedOrders = 0
-  let deliveredOrders = 0
-  let cancelledOrders = 0
+  const statusCounts = {
+    PENDING: 0,
+    CONFIRMED: 0,
+    SHIPPED: 0,
+    DELIVERED: 0,
+    CANCELLED: 0,
+  }
 
-  ordersByStatus.forEach((data) => {
-    if (data.status === "PENDING") pendingOrders += data._count._all
-    if (data.status === "CONFIRMED") confirmedOrders += data._count._all
-    if (data.status === "SHIPPED") shippedOrders += data._count._all
-    if (data.status === "DELIVERED") deliveredOrders += data._count._all
-    if (data.status === "CANCELLED") cancelledOrders += data._count._all
-  })
+  for (const row of ordersByStatus) {
+    statusCounts[row.status] = Number(row._count._all || 0)
+  }
 
   let grossSale = 0
   let cancelledValue = 0
@@ -38,13 +36,14 @@ async function getDashboardSummaryService() {
 
   return {
     orderCount,
-    pendingOrders,
-    confirmedOrders,
-    shippedOrders,
-    deliveredOrders,
-    cancelledOrders,
+    pendingOrders: statusCounts.PENDING,
+    confirmedOrders: statusCounts.CONFIRMED,
+    shippedOrders: statusCounts.SHIPPED,
+    deliveredOrders: statusCounts.DELIVERED,
+    cancelledOrders: statusCounts.CANCELLED,
     grossSale,
     cancelledValue,
+    netSale: grossSale - cancelledValue,
     realizedRevenue,
     lowStockCount,
   }
@@ -78,4 +77,61 @@ async function getLowStockProductsCount() {
   return count
 }
 
-export { getDashboardSummaryService }
+function getPeriodKey(date, groupBy) {
+  const d = new Date(date)
+
+  if (groupBy === "month") {
+    return `${d.getFullYear()}-${d.getMonth() + 1}`
+  }
+
+  if (groupBy === "day") {
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`
+  }
+}
+
+async function getSalesTrendService(groupBy) {
+  const where = {}
+
+  let currentDate = new Date()
+  let startDate = new Date()
+  startDate.setHours(0, 0, 0, 0)
+
+  if (groupBy === "month") {
+    startDate.setDate(1)
+    startDate.setMonth(startDate.getMonth() - 5)
+
+    where.createdAt = {
+      gte: startDate,
+      lte: currentDate,
+    }
+  }
+
+  if (groupBy === "day") {
+    startDate.setDate(startDate.getDate() - 99)
+
+    where.createdAt = {
+      gte: startDate,
+      lte: currentDate,
+    }
+  }
+
+  const orders = await dashboardRepository.getOrdersForSalesTrend(where)
+
+  const trendMap = new Map()
+
+  for (const order of orders) {
+    const key = getPeriodKey(order.createdAt, groupBy)
+
+    if (!trendMap.has(key)) {
+      trendMap.set(key, { period: key, orderCount: 0, totalAmount: 0 })
+    }
+
+    const item = trendMap.get(key)
+    item.orderCount += 1
+    item.totalAmount += Number(order.totalAmount)
+  }
+
+  return Array.from(trendMap.values())
+}
+
+export { getDashboardSummaryService, getSalesTrendService }

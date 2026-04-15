@@ -29,9 +29,23 @@ async function getStockLevelsByProduct() {
   })
 }
 
+async function getOrdersForSalesTrend(where) {
+  return prisma.order.findMany({
+    where,
+    select: {
+      createdAt: true,
+      totalAmount: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  })
+}
+
 export const dashboardRepository = {
   getOrderCount,
   getCountOfOrdersByStatus,
   getOrderAmountsByStatus,
   getStockLevelsByProduct,
+  getOrdersForSalesTrend,
 }
