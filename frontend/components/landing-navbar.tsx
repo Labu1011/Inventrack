@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export function LandingNavbar() {
   return (
@@ -30,10 +31,14 @@ export function LandingNavbar() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm">
-            Login
-          </Button>
-          <Button size="sm">Create account</Button>
+          <Link href="/login">
+            <Button variant="ghost" size="sm">
+              Login
+            </Button>
+          </Link>
+          <Link href="/signup">
+            <Button size="sm">Create account</Button>
+          </Link>
         </div>
       </div>
     </nav>

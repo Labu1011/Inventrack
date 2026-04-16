@@ -16,7 +16,7 @@ import {
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 
-export function LoginForm({
+export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
@@ -24,7 +24,7 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Create an account</CardTitle>
           <CardDescription>
             Enter your email below to login to your account
           </CardDescription>
@@ -32,6 +32,10 @@ export function LoginForm({
         <CardContent>
           <form>
             <FieldGroup>
+              <Field>
+                <FieldLabel htmlFor="name">Full name</FieldLabel>
+                <Input id="name" type="text" placeholder="John Doe" required />
+              </Field>
               <Field>
                 <FieldLabel htmlFor="email">Email</FieldLabel>
                 <Input
@@ -44,22 +48,16 @@ export function LoginForm({
               <Field>
                 <div className="flex items-center">
                   <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
                 </div>
                 <Input id="password" type="password" required />
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                <Button type="submit">Register</Button>
 
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account?{" "}
-                  <Link href="/signup" className="underline">
-                    Sign up
+                  Already have an account?{" "}
+                  <Link href="/login" className="underline">
+                    Login
                   </Link>
                 </FieldDescription>
               </Field>
