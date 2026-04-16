@@ -1,19 +1,23 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono, JetBrains_Mono } from "next/font/google"
+import { Outfit, Geist_Mono, JetBrains_Mono } from "next/font/google"
 import "./globals.css"
 import { TanstackProvider } from "@/components/providers/tanstack-provider"
-import { cn } from "@/lib/utils";
+import { cn } from "@/lib/utils"
+import { TooltipProvider } from "@/components/ui/tooltip"
 
-const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
+  variable: "--font-mono",
 })
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const fontSans = Outfit({
   subsets: ["latin"],
+  variable: "--font-sans",
+})
+
+const fontMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
 })
 
 export const metadata: Metadata = {
@@ -29,10 +33,17 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-mono", jetbrainsMono.variable)}
+      className={cn(
+        "h-full",
+        "antialiased",
+        fontSans.variable,
+        fontMono.variable,
+      )}
     >
       <body className="min-h-full flex flex-col">
-        <TanstackProvider>{children}</TanstackProvider>
+        <TanstackProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </TanstackProvider>
       </body>
     </html>
   )

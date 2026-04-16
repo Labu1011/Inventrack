@@ -1,12 +1,13 @@
-import { Button } from "@/components/ui/button"
+import { HeroSection } from "@/components/ui/hero-section"
+import { LandingNavbar } from "@/components/ui/landing-navbar"
 
 export default function Home() {
   return (
-    <div>
-      <h1 className="text-3xl">Inventory Management System</h1>
-      <Button variant="default" className="bg-amber-500">
-        Click me
-      </Button>
+    <div className="min-h-screen bg-background">
+      <LandingNavbar />
+      <main className="flex items-center justify-center px-8 py-12">
+        <HeroSection />
+      </main>
     </div>
   )
 }
