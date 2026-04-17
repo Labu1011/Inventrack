@@ -1,14 +1,10 @@
 import type { Metadata } from "next"
-import { Outfit, Geist_Mono, JetBrains_Mono } from "next/font/google"
+import { Outfit, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { TanstackProvider } from "@/components/providers/tanstack-provider"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-})
+import { Toaster } from "@/components/ui/sonner"
 
 const fontSans = Outfit({
   subsets: ["latin"],
@@ -42,7 +38,10 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <TanstackProvider>
-          <TooltipProvider>{children}</TooltipProvider>
+          <TooltipProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+          </TooltipProvider>
         </TanstackProvider>
       </body>
     </html>
