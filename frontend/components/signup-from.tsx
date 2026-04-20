@@ -61,7 +61,7 @@ export function SignUpForm({
         email: data.email,
         password: data.password,
       },
-      { onSuccess: () => router.push("/dashboard") },
+      { onSuccess: () => router.push("/login") },
     )
   }
 
