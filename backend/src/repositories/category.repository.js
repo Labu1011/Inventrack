@@ -35,6 +35,20 @@ async function findActiveCategories() {
   })
 }
 
+async function findAllCategories() {
+  return prisma.category.findMany({
+    select: {
+      id: true,
+      name: true,
+      isActive: true,
+      createdAt: true,
+      _count: {
+        select: { products: true },
+      },
+    },
+  })
+}
+
 async function findCategoryById(id) {
   return prisma.category.findFirst({
     where: { id },
@@ -82,6 +96,7 @@ export const categoryRepository = {
   findCategoryByName,
   createCategory,
   findActiveCategories,
+  findAllCategories,
   findCategoryById,
   updateCategoryById,
   deactivateCategoryById,

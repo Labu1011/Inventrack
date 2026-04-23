@@ -41,27 +41,27 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: <LayoutDashboardIcon />,
     },
     {
       title: "Categories",
-      url: "#",
+      url: "/dashboard/categories",
       icon: <ListIcon />,
     },
     {
       title: "Products",
-      url: "#",
+      url: "/dashboard/products",
       icon: <ChartBarIcon />,
     },
     {
       title: "Orders",
-      url: "#",
+      url: "/dashboard/orders",
       icon: <FolderIcon />,
     },
     {
       title: "Stock Movements",
-      url: "#",
+      url: "/dashboard/stock-movements",
       icon: <UsersIcon />,
     },
   ],

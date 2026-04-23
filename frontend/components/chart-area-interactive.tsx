@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -25,14 +25,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  ToggleGroup,
-  ToggleGroupItem,
-} from "@/components/ui/toggle-group"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
+import { useSalesTrend } from "@/hooks/dashboard/useSalesTrend"
 
 export const description = "An interactive area chart"
 
-const chartData = [
+const chData = [
   { date: "2024-04-01", desktop: 222, mobile: 150 },
   { date: "2024-04-02", desktop: 97, mobile: 180 },
   { date: "2024-04-03", desktop: 167, mobile: 120 },
@@ -136,57 +134,63 @@ const chartConfig = {
   },
   mobile: {
     label: "Mobile",
-    color: "var(--primary)",
+    color: "var(--chart-2)",
   },
 } satisfies ChartConfig
 
 export function ChartAreaInteractive() {
   const isMobile = useIsMobile()
-  const [timeRange, setTimeRange] = React.useState("90d")
+  const [groupBy, setGroupBy] = React.useState<"day" | "month">("day")
 
-  React.useEffect(() => {
-    if (isMobile) {
-      setTimeRange("7d")
-    }
-  }, [isMobile])
+  const dayTrend = useSalesTrend("day")
+  const monthTrend = useSalesTrend("month")
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date)
-    const referenceDate = new Date("2024-06-30")
-    let daysToSubtract = 90
-    if (timeRange === "30d") {
-      daysToSubtract = 30
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7
-    }
-    const startDate = new Date(referenceDate)
-    startDate.setDate(startDate.getDate() - daysToSubtract)
-    return date >= startDate
-  })
+  const activeTrend = groupBy === "day" ? dayTrend.data : monthTrend.data
+
+  console.log(activeTrend)
+  const chartData = activeTrend?.data?.map((item: any) => ({
+    period: item.period,
+    grossSales: Number(item.totalAmount),
+    orders: Number(item.orderCount),
+  }))
 
   return (
     <Card className="@container/card">
       <CardHeader>
-        <CardTitle>Total Visitors</CardTitle>
+        <CardTitle>Sales Trend</CardTitle>
         <CardDescription>
           <span className="hidden @[540px]/card:block">
-            Total for the last 3 months
+            {groupBy === "day"
+              ? "Daily sales for the last 30 days"
+              : "Monthly sales for the last 6 months"}
           </span>
-          <span className="@[540px]/card:hidden">Last 3 months</span>
+          <span className="@[540px]/card:hidden">
+            {groupBy === "day" ? "Last 30 days" : "Last 6 months"}
+          </span>
         </CardDescription>
         <CardAction>
           <ToggleGroup
             type="single"
-            value={timeRange}
-            onValueChange={setTimeRange}
+            value={groupBy}
+            onValueChange={(value) => {
+              if (value === "day" || value === "month") {
+                setGroupBy(value)
+              }
+            }}
             variant="outline"
             className="hidden *:data-[slot=toggle-group-item]:px-4! @[767px]/card:flex"
           >
-            <ToggleGroupItem value="90d">Last 3 months</ToggleGroupItem>
-            <ToggleGroupItem value="30d">Last 30 days</ToggleGroupItem>
-            <ToggleGroupItem value="7d">Last 7 days</ToggleGroupItem>
+            <ToggleGroupItem value="month">Last 6 months</ToggleGroupItem>
+            <ToggleGroupItem value="day">Last 30 days</ToggleGroupItem>
           </ToggleGroup>
-          <Select value={timeRange} onValueChange={setTimeRange}>
+          <Select
+            value={groupBy}
+            onValueChange={(value) => {
+              if (value === "day" || value === "month") {
+                setGroupBy(value)
+              }
+            }}
+          >
             <SelectTrigger
               className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
               size="sm"
@@ -195,14 +199,11 @@ export function ChartAreaInteractive() {
               <SelectValue placeholder="Last 3 months" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
-              <SelectItem value="90d" className="rounded-lg">
-                Last 3 months
+              <SelectItem value="month" className="rounded-lg">
+                Last 6 months
               </SelectItem>
-              <SelectItem value="30d" className="rounded-lg">
+              <SelectItem value="day" className="rounded-lg">
                 Last 30 days
-              </SelectItem>
-              <SelectItem value="7d" className="rounded-lg">
-                Last 7 days
               </SelectItem>
             </SelectContent>
           </Select>
@@ -213,7 +214,7 @@ export function ChartAreaInteractive() {
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
         >
-          <AreaChart data={filteredData}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
                 <stop
@@ -240,9 +241,18 @@ export function ChartAreaInteractive() {
                 />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} />
+            <CartesianGrid vertical={false} horizontal={true} />
+
+            <YAxis yAxisId="left" tickFormatter={(value) => `$${value}`} />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              allowDecimals={false}
+              tickFormatter={(value) => Math.round(value).toString()}
+            />
+
             <XAxis
-              dataKey="date"
+              dataKey="period"
               tickLine={false}
               axisLine={false}
               tickMargin={8}
@@ -269,19 +279,20 @@ export function ChartAreaInteractive() {
                 />
               }
             />
+
             <Area
-              dataKey="mobile"
+              yAxisId="left"
+              dataKey="grossSales"
               type="natural"
               fill="url(#fillMobile)"
               stroke="var(--color-mobile)"
-              stackId="a"
             />
             <Area
-              dataKey="desktop"
+              yAxisId="right"
+              dataKey="orders"
               type="natural"
               fill="url(#fillDesktop)"
               stroke="var(--color-desktop)"
-              stackId="a"
             />
           </AreaChart>
         </ChartContainer>

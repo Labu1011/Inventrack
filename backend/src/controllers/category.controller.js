@@ -25,7 +25,8 @@ async function createCategory(req, res, next) {
 
 async function getCategories(req, res, next) {
   try {
-    const categories = await getCategoriesService()
+    const includeInactive = req.query?.includeInactive === "true"
+    const categories = await getCategoriesService(includeInactive)
 
     res.status(200).json(successResponse({ categories }))
   } catch (err) {

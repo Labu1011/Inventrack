@@ -107,7 +107,7 @@ async function getSalesTrendService(groupBy) {
   }
 
   if (groupBy === "day") {
-    startDate.setDate(startDate.getDate() - 99)
+    startDate.setDate(startDate.getDate() - 29)
 
     where.createdAt = {
       gte: startDate,

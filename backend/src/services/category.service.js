@@ -13,8 +13,10 @@ async function createCategoryService(data) {
   return category
 }
 
-async function getCategoriesService() {
-  const categories = await categoryRepository.findActiveCategories()
+async function getCategoriesService(includeInactive = false) {
+  const categories = includeInactive
+    ? await categoryRepository.findAllCategories()
+    : await categoryRepository.findActiveCategories()
 
   return categories
 }

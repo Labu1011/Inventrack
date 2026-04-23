@@ -15,10 +15,10 @@ import { authRepository } from "../repositories/auth.repository.js"
 
 async function authenticate({ email, password }) {
   const user = await authRepository.findUserByEmail(email)
-  if (!user) throw new UnauthorizedError("Invalid email or password")
+  if (!user) throw new UnauthorizedError("Incorrect email or password")
 
   const isMatch = await bcrypt.compare(password, user.password)
-  if (!isMatch) throw new UnauthorizedError("Invalid email or password")
+  if (!isMatch) throw new UnauthorizedError("Incorrect email or password")
 
   const payload = { sub: user.id, role: user.role }
   const accessToken = signAccessToken(payload)

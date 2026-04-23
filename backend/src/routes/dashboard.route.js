@@ -5,11 +5,17 @@ import {
   getSalesTrend,
   getTopProducts,
 } from "../controllers/dashboard.controller.js"
+import { requireAuth, requireRole } from "../middlewares/auth.middleware.js"
 
 const router = express.Router()
 
-router.get("/summary", getDashboardSummary)
-router.get("/sales-trend", getSalesTrend)
+router.get("/summary", requireAuth, requireRole(["ADMIN"]), getDashboardSummary)
+router.get(
+  "/sales-trend",
+  requireAuth,
+  requireRole(["ADMIN", "MANAGER"]),
+  getSalesTrend,
+)
 router.get("/inventory-alerts", getInventoryAlerts)
 router.get("/top-products", getTopProducts)
 

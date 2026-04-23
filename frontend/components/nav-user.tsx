@@ -25,6 +25,7 @@ import {
   LogOutIcon,
 } from "lucide-react"
 import { Button } from "./ui/button"
+import { useMe } from "@/hooks/auth/useMe"
 
 export function NavUser({
   user,
@@ -37,6 +38,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const { mutate } = useLogout()
+  const { data, isLoading } = useMe()
 
   return (
     <SidebarMenu>
@@ -52,9 +54,11 @@ export function NavUser({
                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{user.name}</span>
+                <span className="truncate font-medium">
+                  {data?.data?.user?.name}
+                </span>
                 <span className="truncate text-xs text-muted-foreground">
-                  {user.email}
+                  {data?.data?.user?.email}
                 </span>
               </div>
               <EllipsisVerticalIcon className="ml-auto size-4" />
@@ -73,9 +77,11 @@ export function NavUser({
                   <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{user.name}</span>
+                  <span className="truncate font-medium">
+                    {data?.data?.user?.name}
+                  </span>
                   <span className="truncate text-xs text-muted-foreground">
-                    {user.email}
+                    {data?.data?.user?.email}
                   </span>
                 </div>
               </div>
