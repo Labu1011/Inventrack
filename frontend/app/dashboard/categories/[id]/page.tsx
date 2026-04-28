@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query"
 import { fetchWithAuth } from "@/lib/api/auth.api"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import {
   Table,
   TableHeader,
@@ -16,6 +17,41 @@ import {
   TableCell,
 } from "@/components/ui/table"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+} from "lucide-react"
+import { useState } from "react"
+
+type Product = {
+  id: string
+  name: string
+  sku: string
+  unit: string
+  sellingPrice: string
+  reorderLevel: number
+  isActive: boolean
+  createdAt: string
+}
+
+type ProductsMeta = {
+  totalCount: number
+  totalPages: number
+  currentPage: number
+  limit: number
+  hasNextPage: boolean
+  hasPrevPage: boolean
+}
 
 function formatCurrency(value: string | number) {
   const num = typeof value === "string" ? Number(value) : value
@@ -29,6 +65,8 @@ function formatCurrency(value: string | number) {
 export default function Page() {
   const params = useParams()
   const categoryId = params?.id as string | undefined
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(10)
 
   const {
     data: categoryResp,
@@ -47,14 +85,17 @@ export default function Page() {
     isLoading: isLoadingProducts,
     isError: isErrorProducts,
   } = useQuery({
-    queryKey: ["products", { categoryId }],
+    queryKey: ["category-products", { categoryId, page, limit }],
     queryFn: () =>
-      fetchWithAuth(`/products/${categoryId}?limit=50`, { method: "GET" }),
+      fetchWithAuth(`/products/${categoryId}?page=${page}&limit=${limit}`, {
+        method: "GET",
+      }),
     enabled: !!categoryId,
   })
 
   const category = categoryResp?.data?.category
-  const products = productsResp?.data?.products ?? []
+  const products = (productsResp?.data?.products ?? []) as Product[]
+  const meta = productsResp?.data?.meta as ProductsMeta | undefined
 
   return (
     <div className="space-y-4 px-4 lg:px-6">
@@ -78,7 +119,7 @@ export default function Page() {
         <CardHeader>
           <CardTitle>Products</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           {isLoadingCategory || isLoadingProducts ? (
             <div className="grid gap-2">
               <Skeleton className="h-6 w-1/3" />
@@ -109,7 +150,7 @@ export default function Page() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {products.map((p: any) => (
+                  {products.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell>{p.name}</TableCell>
                       <TableCell>{p.sku}</TableCell>
@@ -130,6 +171,94 @@ export default function Page() {
               </Table>
             </div>
           )}
+
+          <div className="flex items-center justify-between px-1">
+            <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
+              {meta
+                ? `${meta.totalCount} total product${meta.totalCount === 1 ? "" : "s"}`
+                : ""}
+            </div>
+            <div className="flex w-full items-center gap-8 lg:w-fit">
+              <div className="hidden items-center gap-2 lg:flex">
+                <Label
+                  htmlFor="category-products-rows-per-page"
+                  className="text-sm font-medium"
+                >
+                  Rows per page
+                </Label>
+                <Select
+                  value={`${limit}`}
+                  onValueChange={(value) => {
+                    setLimit(Number(value))
+                    setPage(1)
+                  }}
+                >
+                  <SelectTrigger
+                    size="sm"
+                    className="w-20"
+                    id="category-products-rows-per-page"
+                  >
+                    <SelectValue placeholder={limit} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    <SelectGroup>
+                      {[10, 20, 30, 40, 50].map((pageSize) => (
+                        <SelectItem key={pageSize} value={`${pageSize}`}>
+                          {pageSize}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex w-fit items-center justify-center text-sm font-medium">
+                Page {meta?.currentPage ?? 1} of {meta?.totalPages ?? 1}
+              </div>
+
+              <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                <Button
+                  variant="outline"
+                  className="hidden h-8 w-8 p-0 lg:flex"
+                  onClick={() => setPage(1)}
+                  disabled={!meta?.hasPrevPage}
+                >
+                  <span className="sr-only">Go to first page</span>
+                  <ChevronsLeftIcon />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8"
+                  size="icon"
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  disabled={!meta?.hasPrevPage}
+                >
+                  <span className="sr-only">Go to previous page</span>
+                  <ChevronLeftIcon />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="size-8"
+                  size="icon"
+                  onClick={() => setPage((prev) => prev + 1)}
+                  disabled={!meta?.hasNextPage}
+                >
+                  <span className="sr-only">Go to next page</span>
+                  <ChevronRightIcon />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="hidden size-8 lg:flex"
+                  size="icon"
+                  onClick={() => setPage(meta?.totalPages ?? 1)}
+                  disabled={!meta?.hasNextPage}
+                >
+                  <span className="sr-only">Go to last page</span>
+                  <ChevronsRightIcon />
+                </Button>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

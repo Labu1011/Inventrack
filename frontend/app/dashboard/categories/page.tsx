@@ -271,7 +271,7 @@ export default function Page() {
                       ) : (
                         <Link
                           href={`/dashboard/categories/${category.id}`}
-                          className="hover:underline"
+                          className="underline"
                         >
                           {`${category._count.products} product${
                             category._count.products === 1 ? "" : "s"

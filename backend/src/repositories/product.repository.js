@@ -30,6 +30,14 @@ async function createProduct(data) {
 async function findManyProducts(where, skip, take) {
   return prisma.product.findMany({
     where,
+    include: {
+      category: {
+        select: {
+          name: true,
+          id: true,
+        },
+      },
+    },
     skip,
     take,
     orderBy: { createdAt: "desc" },

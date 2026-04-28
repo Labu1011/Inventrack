@@ -43,11 +43,16 @@ async function createProductService(data) {
   }
 }
 
-async function getProductsService(page, limit, search) {
+async function getProductsService(page, limit, search, status = "active") {
   const skip = (page - 1) * limit
   const where = {
-    isActive: true,
     name: { contains: search, mode: "insensitive" },
+  }
+
+  if (status === "active") {
+    where.isActive = true
+  } else if (status === "deleted") {
+    where.isActive = false
   }
 
   const [products, totalCount] = await Promise.all([

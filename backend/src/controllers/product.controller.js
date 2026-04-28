@@ -29,8 +29,10 @@ async function createProduct(req, res, next) {
 
 async function getProducts(req, res, next) {
   try {
-    const { page, limit, search } = productPaginationSchema.parse(req.query)
-    const products = await getProductsService(page, limit, search)
+    const { page, limit, search, status } = productPaginationSchema.parse(
+      req.query,
+    )
+    const products = await getProductsService(page, limit, search, status)
 
     res.status(200).json(successResponse(products))
   } catch (err) {
