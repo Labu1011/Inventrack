@@ -85,6 +85,14 @@ async function findOrderDetailById(orderId, tx = prisma) {
 async function getOrderHistory(where, take, skip) {
   return prisma.order.findMany({
     where,
+    include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+    },
     take,
     skip,
   })
