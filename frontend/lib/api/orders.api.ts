@@ -41,3 +41,9 @@ export async function updateOrderStatus(id: string, status: OrderStatus) {
     body: JSON.stringify({ status }),
   })
 }
+
+export async function getOrderById(id: string) {
+  return fetchWithAuth(`/orders/${id}`, {
+    method: "GET",
+  })
+}

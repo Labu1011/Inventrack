@@ -234,9 +234,20 @@ async function getOrderHistoryService(queryParams, user) {
   }
 }
 
+async function getOrderDetailsService(id, user) {
+  const order = await orderRepository.getSingleOrder(id)
+
+  if (user?.role === "USER" && order.userId !== user?.id) {
+    throw new ForbiddenError("You are not allowed to view this order.")
+  }
+
+  return order
+}
+
 export {
   placeOrderService,
   cancelOrderService,
   updateOrderStatusService,
   getOrderHistoryService,
+  getOrderDetailsService,
 }

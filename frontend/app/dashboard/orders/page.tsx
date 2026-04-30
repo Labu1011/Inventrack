@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useOrders } from "@/hooks/orders/useOrders"
 import { useUpdateOrderStatus } from "@/hooks/orders/useUpdateOrderStatus"
 import { useMe } from "@/hooks/auth/useMe"
@@ -281,9 +282,10 @@ export default function Page() {
                     <TableHead>Order ID</TableHead>
                     <TableHead>User</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Total</TableHead>
                     <TableHead>Created At</TableHead>
                     <TableHead>Updated At</TableHead>
+                    <TableHead>Details</TableHead>
+                    <TableHead className="text-right">Total</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -340,9 +342,18 @@ export default function Page() {
                           </SelectContent>
                         </Select>
                       </TableCell>
-                      <TableCell>{formatCurrency(order.totalAmount)}</TableCell>
                       <TableCell>{formatDate(order.createdAt)}</TableCell>
                       <TableCell>{formatDate(order.updatedAt)}</TableCell>
+                      <TableCell>
+                        <Link href={`/dashboard/orders/${order.id}`}>
+                          <Button variant="outline" size="sm">
+                            View
+                          </Button>
+                        </Link>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(order.totalAmount)}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

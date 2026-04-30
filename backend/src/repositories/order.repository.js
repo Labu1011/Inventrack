@@ -104,6 +104,26 @@ async function countOrders(where) {
   })
 }
 
+async function getSingleOrder(id) {
+  return prisma.order.findUnique({
+    where: {
+      id,
+    },
+    include: {
+      orderItems: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  })
+}
+
 export const orderRepository = {
   placeOrder,
   createOrder,
@@ -111,6 +131,7 @@ export const orderRepository = {
   findOrderById,
   findOrderDetailById,
   getOrderHistory,
+  getSingleOrder,
   countOrders,
   updateOrderStatus,
   updateOrderStatusIfCancellable,

@@ -1,6 +1,7 @@
 import express from "express"
 import {
   cancelOrder,
+  getOrderDetails,
   getOrderHistory,
   placeOrder,
   updateOrderStatus,
@@ -18,5 +19,6 @@ router.patch(
   updateOrderStatus,
 )
 router.get("/", requireAuth, getOrderHistory)
+router.get("/:id", requireAuth, getOrderDetails)
 
 export default router
