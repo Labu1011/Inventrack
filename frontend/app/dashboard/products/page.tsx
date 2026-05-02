@@ -162,8 +162,8 @@ export default function Page() {
           <CardDescription>
             Search by product name and navigate through pages.
           </CardDescription>
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
-            <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center justify-between gap-2 pt-2">
+            <div className="flex flex-wrap w-full items-center gap-2">
               <Input
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}

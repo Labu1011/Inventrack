@@ -128,12 +128,12 @@ const data = {
   users: [
     {
       name: "Create Staff Account",
-      url: "#",
+      url: "/dashboard/create-staff-account",
       icon: <DatabaseIcon />,
     },
     {
       name: "Manage Roles",
-      url: "#",
+      url: "/dashboard/manage-roles",
       icon: <FileChartColumnIcon />,
     },
   ],

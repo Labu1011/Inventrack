@@ -28,6 +28,34 @@ export async function registerUser(data: {
   return body
 }
 
+export async function createStaffUser(data: {
+  name: string
+  email: string
+  password: string
+  role: "ADMIN" | "MANAGER"
+}) {
+  return fetchWithAuth("/auth/create-user", {
+    method: "POST",
+    body: JSON.stringify(data),
+  })
+}
+
+export async function getStaffAccounts() {
+  return fetchWithAuth("/auth/staff-accounts", {
+    method: "GET",
+  })
+}
+
+export async function updateUserRole(data: {
+  id: string
+  role: "ADMIN" | "MANAGER"
+}) {
+  return fetchWithAuth(`/auth/role/${data.id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ role: data.role }),
+  })
+}
+
 export async function login(data: { email: string; password: string }) {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
     method: "POST",

@@ -24,3 +24,7 @@ export const registerUserSchema = z.object({
       "Password must contain at least one uppercase and one number",
     ),
 })
+
+export const updateUserRoleSchema = z.object({
+  role: z.enum(["ADMIN", "MANAGER"]),
+})

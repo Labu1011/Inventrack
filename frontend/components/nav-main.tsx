@@ -28,18 +28,6 @@ export function NavMain({
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <h1 className="text-2xl my-3 flex items-center">
-              Hello,{" "}
-              <span className="ml-2">
-                {isLoading ? (
-                  <Skeleton className="h-5 w-24" />
-                ) : (
-                  data?.data?.user?.name
-                )}
-              </span>
-            </h1>
-          </SidebarMenuItem>
           <SidebarMenuItem className="flex items-center gap-2">
             <SidebarMenuButton
               tooltip="Quick Create"

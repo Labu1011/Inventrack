@@ -24,7 +24,10 @@ type OrderItem = {
 type OrderDetails = {
   id: string
   orderNumber: number
-  userId: string
+  user: {
+    id: string
+    name: string
+  }
   status: OrderStatus
   totalAmount: string
   createdAt: string
@@ -116,7 +119,7 @@ export default function Page() {
                 <p className="text-xs uppercase text-muted-foreground">
                   Customer
                 </p>
-                <p className="text-sm font-medium">{order.userId}</p>
+                <p className="text-sm font-medium">{order.user?.name}</p>
               </div>
               <div className="rounded-lg border p-3">
                 <p className="text-xs uppercase text-muted-foreground">Total</p>

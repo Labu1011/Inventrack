@@ -7,6 +7,7 @@ import {
 } from "../utils/tokens.js"
 import {
   ApiError,
+  BadRequestError,
   ConflictError,
   NotFoundError,
   UnauthorizedError,
@@ -130,6 +131,26 @@ async function registerUserService(data) {
   return user
 }
 
+async function getAllStaffAccountsService() {
+  const staffUsers = await authRepository.getAllStaffAccounts()
+
+  return staffUsers
+}
+
+async function updateUserRoleService(userId, role) {
+  const user = await authRepository.findUserById(userId)
+  if (user?.role === "USER") {
+    throw new BadRequestError(
+      "A customer user cannot be promoted to a staff role.",
+    )
+  }
+
+  console.log(role)
+  const updatedUser = await authRepository.updateUserRole(userId, role)
+
+  return updatedUser
+}
+
 export {
   authenticate,
   getMe,
@@ -138,4 +159,6 @@ export {
   logoutAllSessions,
   createUserService,
   registerUserService,
+  getAllStaffAccountsService,
+  updateUserRoleService,
 }

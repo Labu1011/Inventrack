@@ -1,13 +1,19 @@
 import { loginSchema } from "../dtos/auth.dto.js"
-import { createUserSchema, registerUserSchema } from "../dtos/user.dto.js"
+import {
+  createUserSchema,
+  registerUserSchema,
+  updateUserRoleSchema,
+} from "../dtos/user.dto.js"
 import {
   authenticate,
   createUserService,
+  getAllStaffAccountsService,
   getMe,
   logoutAllSessions,
   logoutByToken,
   registerUserService,
   rotateRefreshToken,
+  updateUserRoleService,
 } from "../services/auth.service.js"
 import { successResponse } from "../utils/successResponse.js"
 
@@ -134,4 +140,37 @@ async function registerUser(req, res, next) {
   }
 }
 
-export { login, refresh, logout, logoutAll, me, createUser, registerUser }
+async function getAllStaffAccounts(req, res, next) {
+  try {
+    const staffUsers = await getAllStaffAccountsService()
+
+    return res.status(200).json(successResponse(staffUsers))
+  } catch (err) {
+    next(err)
+  }
+}
+
+async function updateUserRole(req, res, next) {
+  try {
+    const { role } = updateUserRoleSchema.parse(req.body)
+    const id = req.params.id
+
+    const updatedUser = await updateUserRoleService(id, role)
+
+    return res.status(200).json(successResponse({ user: updatedUser }))
+  } catch (err) {
+    next(err)
+  }
+}
+
+export {
+  login,
+  refresh,
+  logout,
+  logoutAll,
+  me,
+  getAllStaffAccounts,
+  createUser,
+  registerUser,
+  updateUserRole,
+}

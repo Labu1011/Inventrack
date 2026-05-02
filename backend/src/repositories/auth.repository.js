@@ -22,6 +22,25 @@ async function createStaffAccount(data, hashedPassword) {
   })
 }
 
+async function getAllStaffAccounts() {
+  return prisma.user.findMany({
+    where: {
+      role: {
+        in: ["ADMIN", "MANAGER"],
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  })
+}
+
 async function createCustomerUser(data, hashedPassword) {
   return prisma.user.create({
     data: {
@@ -54,6 +73,22 @@ async function findUserById(id) {
   return prisma.user.findUnique({
     where: { id },
     select: { id: true, name: true, email: true, role: true, createdAt: true },
+  })
+}
+
+async function updateUserRole(id, role) {
+  return prisma.user.update({
+    where: {
+      id,
+    },
+    data: {
+      role,
+    },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+    },
   })
 }
 
@@ -95,6 +130,8 @@ export const authRepository = {
   createCustomerUser,
   createRefreshToken,
   findUserById,
+  getAllStaffAccounts,
+  updateUserRole,
   findRefreshToken,
   revokeRefreshTokenById,
   deleteRefreshToken,

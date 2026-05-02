@@ -110,6 +110,12 @@ async function getSingleOrder(id) {
       id,
     },
     include: {
+      user: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
       orderItems: {
         include: {
           product: {
