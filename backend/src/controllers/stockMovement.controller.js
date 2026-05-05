@@ -1,11 +1,13 @@
 import {
   createStockMovementSchema,
   getAllStockMovementsSchema,
+  getLowStockProductsSchema,
 } from "../dtos/stock.dto.js"
 import {
   createStockMovementService,
   getAllStockMovementsService,
   getCurrentStockLevelService,
+  getLowStockProductsService,
 } from "../services/stockMovement.service.js"
 import { successResponse } from "../utils/successResponse.js"
 
@@ -52,4 +54,21 @@ async function getAllStockMovements(req, res, next) {
   }
 }
 
-export { createStockMovement, getCurrentStockLevel, getAllStockMovements }
+async function getLowStockProducts(req, res, next) {
+  try {
+    const queryParams = getLowStockProductsSchema.parse(req.query)
+
+    const lowStockProducts = await getLowStockProductsService(queryParams)
+
+    return res.status(200).json(successResponse(lowStockProducts))
+  } catch (err) {
+    next(err)
+  }
+}
+
+export {
+  createStockMovement,
+  getCurrentStockLevel,
+  getAllStockMovements,
+  getLowStockProducts,
+}

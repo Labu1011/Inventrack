@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useMe } from "@/hooks/auth/useMe"
+import { CreateStockMovementForm } from "@/components/create-stock-movement-form"
+import { useLowStockProducts } from "@/hooks/stock/useLowStockProducts"
 import { useStockMovements } from "@/hooks/stock/useStockMovements"
 import { Button } from "@/components/ui/button"
 import {
@@ -36,6 +39,13 @@ import {
   ChevronsLeftIcon,
   ChevronsRightIcon,
 } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import type { LowStockProduct } from "@/lib/api/products.api"
 import type { StockMovementType } from "@/lib/api/stockMovements.api"
 
 type StockMovement = {
@@ -72,6 +82,20 @@ type StockMovementsResponse = {
   }
 }
 
+type LowStockProductsResponse = {
+  data?: {
+    products?: LowStockProduct[]
+    meta?: {
+      totalCount: number
+      totalPages: number
+      currentPage: number
+      limit: number
+      hasNextPage: boolean
+      hasPrevPage: boolean
+    }
+  }
+}
+
 const typeOptions: StockMovementType[] = ["IN", "OUT", "ADJUST"]
 
 const typeStyles: Record<StockMovementType, string> = {
@@ -96,10 +120,24 @@ function formatQuantity(type: StockMovementType, quantity: number) {
   return `${sign}${normalized}`
 }
 
+function formatCurrency(value: string) {
+  const parsed = Number(value)
+
+  if (Number.isNaN(parsed)) return "-"
+
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(parsed)
+}
+
 export default function Page() {
   const { data: me } = useMe()
   const role = me?.data?.user?.role
   const canViewHistory = role === "ADMIN" || role === "MANAGER"
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -125,6 +163,25 @@ export default function Page() {
   const history = (data as StockMovementsResponse)?.data?.stockHistory ?? []
   const meta = (data as StockMovementsResponse)?.data?.meta
 
+  const [lowStockPage, setLowStockPage] = useState(1)
+  const [lowStockLimit, setLowStockLimit] = useState(10)
+  const [lowStockSearchInput, setLowStockSearchInput] = useState("")
+  const [lowStockSearch, setLowStockSearch] = useState("")
+
+  const {
+    data: lowStockData,
+    isLoading: isLowStockLoading,
+    isError: isLowStockError,
+  } = useLowStockProducts({
+    page: lowStockPage,
+    limit: lowStockLimit,
+    search: lowStockSearch || undefined,
+  })
+
+  const lowStockProducts =
+    (lowStockData as LowStockProductsResponse)?.data?.products ?? []
+  const lowStockMeta = (lowStockData as LowStockProductsResponse)?.data?.meta
+
   const handleApplyFilters = () => {
     setAppliedFilters(filters)
     setPage(1)
@@ -138,15 +195,28 @@ export default function Page() {
     setPage(1)
   }
 
+  const handleLowStockSearch = () => {
+    setLowStockSearch(lowStockSearchInput.trim())
+    setLowStockPage(1)
+  }
+
   return (
     <div className="space-y-4 px-4 lg:px-6">
-      <div>
-        <h2 className="text-xl font-semibold tracking-tight">
-          Stock Movements
-        </h2>
-        <p className="text-sm text-muted-foreground">
-          Track inventory changes by type, date, and product details.
-        </p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">
+            Stock Movements
+          </h2>
+          <p className="text-sm text-muted-foreground">
+            Track inventory changes by type, date, and product details.
+          </p>
+        </div>
+        <Button
+          onClick={() => setIsCreateModalOpen(true)}
+          disabled={!canViewHistory}
+        >
+          Create Movement
+        </Button>
       </div>
 
       <Card>
@@ -296,7 +366,16 @@ export default function Page() {
                       </TableCell>
                       <TableCell>{movement.note ?? "-"}</TableCell>
                       <TableCell className="text-xs text-muted-foreground">
-                        {movement.orderId ?? "-"}
+                        {movement.orderId ? (
+                          <Link
+                            href={`/dashboard/orders/${movement.orderId}`}
+                            className="text-primary hover:underline"
+                          >
+                            {movement.orderId}
+                          </Link>
+                        ) : (
+                          "-"
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -396,6 +475,206 @@ export default function Page() {
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>⚠️ Low Stock Products</CardTitle>
+          <CardDescription>
+            Review products that have fallen below their reorder level.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex w-full flex-wrap items-center gap-2">
+              <Input
+                value={lowStockSearchInput}
+                onChange={(e) => setLowStockSearchInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault()
+                    handleLowStockSearch()
+                  }
+                }}
+                placeholder="Search products..."
+                className="w-full max-w-sm"
+              />
+              <Button variant="outline" onClick={handleLowStockSearch}>
+                Search
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  setLowStockSearchInput("")
+                  setLowStockSearch("")
+                  setLowStockPage(1)
+                }}
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+
+          {isLowStockLoading ? (
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : isLowStockError ? (
+            <p className="text-sm text-destructive">
+              Unable to load low stock products. Please try again.
+            </p>
+          ) : lowStockProducts.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No low stock products found.
+            </p>
+          ) : (
+            <div className="overflow-hidden rounded-lg border">
+              <Table>
+                <TableHeader className="bg-muted">
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>SKU</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead className="text-right">Selling Price</TableHead>
+                    <TableHead className="text-right">Reorder Level</TableHead>
+                    <TableHead className="text-right">Current</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {lowStockProducts.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.sku}</TableCell>
+                      <TableCell>{product.category?.name ?? "-"}</TableCell>
+                      <TableCell>{product.unit}</TableCell>
+                      <TableCell className="text-right">
+                        {formatCurrency(product.sellingPrice)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {product.reorderLevel}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span
+                          className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold ${
+                            product.currentStock === 0
+                              ? "bg-red-100 text-red-800"
+                              : "bg-orange-100 text-orange-800"
+                          }`}
+                        >
+                          {product.currentStock}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          )}
+
+          {lowStockMeta && (
+            <div className="flex items-center justify-between px-1">
+              <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
+                {`${lowStockMeta.totalCount} low stock product${lowStockMeta.totalCount === 1 ? "" : "s"}`}
+              </div>
+              <div className="flex w-full items-center gap-8 lg:w-fit">
+                <div className="hidden items-center gap-2 lg:flex">
+                  <Label
+                    htmlFor="low-stock-rows-per-page"
+                    className="text-sm font-medium"
+                  >
+                    Rows per page
+                  </Label>
+                  <Select
+                    value={`${lowStockLimit}`}
+                    onValueChange={(value) => {
+                      setLowStockLimit(Number(value))
+                      setLowStockPage(1)
+                    }}
+                  >
+                    <SelectTrigger
+                      size="sm"
+                      className="w-20"
+                      id="low-stock-rows-per-page"
+                    >
+                      <SelectValue placeholder={lowStockLimit} />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                      <SelectGroup>
+                        {[10, 20, 30, 40, 50].map((pageSize) => (
+                          <SelectItem key={pageSize} value={`${pageSize}`}>
+                            {pageSize}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex w-fit items-center justify-center text-sm font-medium">
+                  Page {lowStockMeta.currentPage} of {lowStockMeta.totalPages}
+                </div>
+                <div className="ml-auto flex items-center gap-2 lg:ml-0">
+                  <Button
+                    variant="outline"
+                    className="hidden h-8 w-8 p-0 lg:flex"
+                    onClick={() => setLowStockPage(1)}
+                    disabled={!lowStockMeta.hasPrevPage}
+                  >
+                    <span className="sr-only">Go to first page</span>
+                    <ChevronsLeftIcon />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="size-8"
+                    size="icon"
+                    onClick={() =>
+                      setLowStockPage((prev) => Math.max(1, prev - 1))
+                    }
+                    disabled={!lowStockMeta.hasPrevPage}
+                  >
+                    <span className="sr-only">Go to previous page</span>
+                    <ChevronLeftIcon />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="size-8"
+                    size="icon"
+                    onClick={() => setLowStockPage((prev) => prev + 1)}
+                    disabled={!lowStockMeta.hasNextPage}
+                  >
+                    <span className="sr-only">Go to next page</span>
+                    <ChevronRightIcon />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="hidden size-8 lg:flex"
+                    size="icon"
+                    onClick={() => setLowStockPage(lowStockMeta.totalPages)}
+                    disabled={!lowStockMeta.hasNextPage}
+                  >
+                    <span className="sr-only">Go to last page</span>
+                    <ChevronsRightIcon />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create Stock Movement</DialogTitle>
+          </DialogHeader>
+          <div className="pt-4">
+            <CreateStockMovementForm
+              onClose={() => setIsCreateModalOpen(false)}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -3,6 +3,7 @@ import {
   createStockMovement,
   getAllStockMovements,
   getCurrentStockLevel,
+  getLowStockProducts,
 } from "../controllers/stockMovement.controller.js"
 import { requireAuth, requireRole } from "../middlewares/auth.middleware.js"
 
@@ -19,6 +20,12 @@ router.get(
   requireAuth,
   requireRole(["ADMIN", "MANAGER"]),
   getAllStockMovements,
+)
+router.get(
+  "/low-stock",
+  requireAuth,
+  requireRole(["ADMIN", "MANAGER"]),
+  getLowStockProducts,
 )
 router.get("/:productId", getCurrentStockLevel)
 

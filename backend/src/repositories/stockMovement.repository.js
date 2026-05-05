@@ -59,10 +59,23 @@ async function findStockOutMovementsByOrderId(orderId, tx = prisma) {
   })
 }
 
+async function getStockLevelByProductIds(productIds = [], tx = prisma) {
+  return tx.stockMovement.groupBy({
+    by: ["productId", "type"],
+    where: {
+      productId: { in: productIds },
+    },
+    _sum: {
+      quantity: true,
+    },
+  })
+}
+
 export const stockMovementRepository = {
   groupStockLevelByType,
   createStockMovement,
   findManyStockMovements,
   findStockOutMovementsByOrderId,
   countStockMovements,
+  getStockLevelByProductIds,
 }

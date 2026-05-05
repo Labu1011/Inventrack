@@ -2,6 +2,13 @@ import { fetchWithAuth } from "./auth.api"
 
 export type StockMovementType = "IN" | "OUT" | "ADJUST"
 
+export type CreateStockMovementInput = {
+  productId: string
+  type: StockMovementType
+  quantity: number
+  note?: string
+}
+
 export async function getStockHistory({
   page = 1,
   limit = 10,
@@ -27,5 +34,12 @@ export async function getStockHistory({
 
   return fetchWithAuth(`/stock/history${query ? `?${query}` : ""}`, {
     method: "GET",
+  })
+}
+
+export async function createStockMovement(data: CreateStockMovementInput) {
+  return fetchWithAuth(`/stock/move`, {
+    method: "POST",
+    body: JSON.stringify(data),
   })
 }
