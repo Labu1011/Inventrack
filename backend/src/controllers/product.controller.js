@@ -6,6 +6,7 @@ import {
 import {
   createProductService,
   deleteProductService,
+  getProductDetailsService,
   getProductsByCategoryService,
   getProductsService,
   restoreProductService,
@@ -35,6 +36,18 @@ async function getProducts(req, res, next) {
     const products = await getProductsService(page, limit, search, status)
 
     res.status(200).json(successResponse(products))
+  } catch (err) {
+    next(err)
+  }
+}
+
+async function getProductDetails(req, res, next) {
+  try {
+    const { id } = req.params
+
+    const product = await getProductDetailsService(id)
+
+    res.status(200).json(successResponse({ product }))
   } catch (err) {
     next(err)
   }
@@ -113,6 +126,7 @@ async function restoreProduct(req, res, next) {
 
 export {
   createProduct,
+  getProductDetails,
   getProducts,
   getProductsByCategory,
   updateProduct,

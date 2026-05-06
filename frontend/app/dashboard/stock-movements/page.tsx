@@ -138,6 +138,11 @@ export default function Page() {
   const role = me?.data?.user?.role
   const canViewHistory = role === "ADMIN" || role === "MANAGER"
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedLowStockProduct, setSelectedLowStockProduct] = useState<{
+    id: string
+    name: string
+    sku: string
+  } | null>(null)
 
   const [page, setPage] = useState(1)
   const [limit, setLimit] = useState(10)
@@ -212,7 +217,10 @@ export default function Page() {
           </p>
         </div>
         <Button
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => {
+            setSelectedLowStockProduct(null)
+            setIsCreateModalOpen(true)
+          }}
           disabled={!canViewHistory}
         >
           Create Movement
@@ -539,7 +547,8 @@ export default function Page() {
                     <TableHead>Unit</TableHead>
                     <TableHead className="text-right">Selling Price</TableHead>
                     <TableHead className="text-right">Reorder Level</TableHead>
-                    <TableHead className="text-right">Current</TableHead>
+                    <TableHead className="text-right">Current Stock</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -565,6 +574,24 @@ export default function Page() {
                         >
                           {product.currentStock}
                         </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          disabled={!canViewHistory}
+                          onClick={() => {
+                            setSelectedLowStockProduct({
+                              id: product.id,
+                              name: product.name,
+                              sku: product.sku,
+                            })
+                            setIsCreateModalOpen(true)
+                          }}
+                        >
+                          Add stock
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -670,7 +697,11 @@ export default function Page() {
           </DialogHeader>
           <div className="pt-4">
             <CreateStockMovementForm
-              onClose={() => setIsCreateModalOpen(false)}
+              onClose={() => {
+                setIsCreateModalOpen(false)
+                setSelectedLowStockProduct(null)
+              }}
+              initialProduct={selectedLowStockProduct}
             />
           </div>
         </DialogContent>

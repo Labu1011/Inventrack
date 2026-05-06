@@ -55,6 +55,12 @@ export async function createProduct(data: any) {
   })
 }
 
+export async function getProductDetails(id: string) {
+  return fetchWithAuth(`/products/detail/${id}`, {
+    method: "GET",
+  })
+}
+
 export async function getLowStockProducts({
   page = 1,
   limit = 10,

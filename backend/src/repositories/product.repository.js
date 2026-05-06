@@ -6,6 +6,20 @@ async function findProductById(id, tx = prisma) {
   })
 }
 
+async function findProductWithCategoryById(id, tx = prisma) {
+  return tx.product.findUnique({
+    where: { id },
+    include: {
+      category: {
+        select: {
+          name: true,
+          id: true,
+        },
+      },
+    },
+  })
+}
+
 async function findActiveProductById(id, tx = prisma) {
   return tx.product.findFirst({
     where: {
@@ -99,6 +113,7 @@ async function activateProductById(id) {
 
 export const productRepository = {
   findProductById,
+  findProductWithCategoryById,
   findActiveProductById,
   findCategoryById,
   createProduct,

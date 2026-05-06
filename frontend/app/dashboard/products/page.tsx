@@ -1,9 +1,11 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { useProducts } from "@/hooks/products/useProducts"
 import { useDeleteProduct } from "@/hooks/products/useDeleteProduct"
 import { useRestoreProduct } from "@/hooks/products/useRestoreProduct"
+import { useMe } from "@/hooks/auth/useMe"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -61,6 +63,7 @@ type Product = {
   costPrice: string
   sellingPrice: string
   reorderLevel: number
+  currentStock?: number
   isActive: boolean
   createdAt: string
   updatedAt: string
@@ -104,6 +107,9 @@ function formatDate(value: string) {
 }
 
 export default function Page() {
+  const { data: me } = useMe()
+  const role = me?.data?.user?.role
+  const canManageProducts = role === "ADMIN"
   const [searchInput, setSearchInput] = useState("")
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
@@ -151,9 +157,11 @@ export default function Page() {
             Browse all active products with search and pagination.
           </p>
         </div>
-        <Button onClick={() => setIsCreateModalOpen(true)}>
-          Create Product
-        </Button>
+        {canManageProducts ? (
+          <Button onClick={() => setIsCreateModalOpen(true)}>
+            Create Product
+          </Button>
+        ) : null}
       </div>
 
       <Card>
@@ -236,16 +244,25 @@ export default function Page() {
                     <TableHead>Unit</TableHead>
                     <TableHead className="text-right">Cost Price</TableHead>
                     <TableHead className="text-right">Selling Price</TableHead>
-                    <TableHead className="text-right">Reorder</TableHead>
+                    <TableHead className="text-right">Current Stock</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Created At</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
+                    {canManageProducts && (
+                      <TableHead className="text-right">Action</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {products.map((product: any) => (
                     <TableRow key={product.id}>
-                      <TableCell>{product.name}</TableCell>
+                      <TableCell>
+                        <Link
+                          href={`/dashboard/products/${product.id}`}
+                          className="font-medium text-primary hover:underline"
+                        >
+                          {product.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>{product.sku}</TableCell>
                       <TableCell>{product.category.name}</TableCell>
                       <TableCell>{product.unit}</TableCell>
@@ -256,7 +273,7 @@ export default function Page() {
                         {formatCurrency(product.sellingPrice)}
                       </TableCell>
                       <TableCell className="text-right">
-                        {product.reorderLevel}
+                        {product.currentStock ?? 0}
                       </TableCell>
                       <TableCell>
                         {product.isActive ? (
@@ -270,60 +287,66 @@ export default function Page() {
                         )}
                       </TableCell>
                       <TableCell>{formatDate(product.createdAt)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            disabled={!product.isActive}
-                            onClick={() => {
-                              setSelectedProduct({
-                                id: product.id,
-                                name: product.name,
-                                sku: product.sku,
-                                categoryId: product.category.id,
-                                unit: product.unit,
-                                costPrice: product.costPrice,
-                                sellingPrice: product.sellingPrice,
-                                reorderLevel: product.reorderLevel,
-                              })
-                              setIsEditModalOpen(true)
-                            }}
-                          >
-                            <PencilIcon className="mr-1 h-4 w-4" />
-                            Edit
-                          </Button>
-
-                          {product.isActive ? (
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              disabled={
-                                deleteMutation.status === "pending" ||
-                                restoreMutation.status === "pending"
-                              }
-                              onClick={() => deleteMutation.mutate(product.id)}
-                            >
-                              Delete
-                            </Button>
-                          ) : (
+                      {canManageProducts && (
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <Button
                               type="button"
                               variant="outline"
                               size="sm"
-                              disabled={
-                                deleteMutation.status === "pending" ||
-                                restoreMutation.status === "pending"
-                              }
-                              onClick={() => restoreMutation.mutate(product.id)}
+                              disabled={!product.isActive}
+                              onClick={() => {
+                                setSelectedProduct({
+                                  id: product.id,
+                                  name: product.name,
+                                  sku: product.sku,
+                                  categoryId: product.category.id,
+                                  unit: product.unit,
+                                  costPrice: product.costPrice,
+                                  sellingPrice: product.sellingPrice,
+                                  reorderLevel: product.reorderLevel,
+                                })
+                                setIsEditModalOpen(true)
+                              }}
                             >
-                              Restore
+                              <PencilIcon className="mr-1 h-4 w-4" />
+                              Edit
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
+
+                            {product.isActive ? (
+                              <Button
+                                type="button"
+                                variant="destructive"
+                                size="sm"
+                                disabled={
+                                  deleteMutation.status === "pending" ||
+                                  restoreMutation.status === "pending"
+                                }
+                                onClick={() =>
+                                  deleteMutation.mutate(product.id)
+                                }
+                              >
+                                Delete
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                disabled={
+                                  deleteMutation.status === "pending" ||
+                                  restoreMutation.status === "pending"
+                                }
+                                onClick={() =>
+                                  restoreMutation.mutate(product.id)
+                                }
+                              >
+                                Restore
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -414,41 +437,45 @@ export default function Page() {
         </CardContent>
       </Card>
 
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Create Product</DialogTitle>
-          </DialogHeader>
-          <div className="pt-4">
-            <CreateProductForm onClose={() => setIsCreateModalOpen(false)} />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {canManageProducts && (
+        <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Product</DialogTitle>
+            </DialogHeader>
+            <div className="pt-4">
+              <CreateProductForm onClose={() => setIsCreateModalOpen(false)} />
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
-      <Dialog
-        open={isEditModalOpen}
-        onOpenChange={(open) => {
-          setIsEditModalOpen(open)
-          if (!open) setSelectedProduct(null)
-        }}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Product</DialogTitle>
-          </DialogHeader>
-          <div className="pt-4">
-            {selectedProduct && (
-              <UpdateProductForm
-                product={selectedProduct}
-                onClose={() => {
-                  setIsEditModalOpen(false)
-                  setSelectedProduct(null)
-                }}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {canManageProducts && (
+        <Dialog
+          open={isEditModalOpen}
+          onOpenChange={(open) => {
+            setIsEditModalOpen(open)
+            if (!open) setSelectedProduct(null)
+          }}
+        >
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+            </DialogHeader>
+            <div className="pt-4">
+              {selectedProduct && (
+                <UpdateProductForm
+                  product={selectedProduct}
+                  onClose={() => {
+                    setIsEditModalOpen(false)
+                    setSelectedProduct(null)
+                  }}
+                />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

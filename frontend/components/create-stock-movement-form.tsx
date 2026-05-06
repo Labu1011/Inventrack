@@ -23,7 +23,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "./ui/select"
+} from "@/components/ui/select"
 
 const createStockMovementSchema = z.object({
   productId: z.string().uuid("Invalid product ID"),
@@ -42,13 +42,20 @@ type CreateStockMovementFormData = z.infer<typeof createStockMovementSchema>
 
 type CreateStockMovementFormProps = {
   onClose: () => void
+  initialProduct?: {
+    id: string
+    name: string
+    sku: string
+  } | null
 }
 
 const typeOptions: StockMovementType[] = ["IN", "OUT", "ADJUST"]
 
 export function CreateStockMovementForm({
   onClose,
+  initialProduct,
 }: CreateStockMovementFormProps) {
+  const isPresetProduct = Boolean(initialProduct)
   const [productSearchInput, setProductSearchInput] = useState("")
   const [productSearch, setProductSearch] = useState("")
   const form = useForm<CreateStockMovementFormData>({
@@ -89,6 +96,13 @@ export function CreateStockMovementForm({
     }
   }, [createMutation.status, form, onClose])
 
+  useEffect(() => {
+    if (initialProduct?.id) {
+      form.setValue("productId", initialProduct.id)
+      form.setValue("type", "IN")
+    }
+  }, [initialProduct, form])
+
   const handleProductSearch = () => {
     setProductSearch(productSearchInput.trim())
   }
@@ -105,76 +119,91 @@ export function CreateStockMovementForm({
           render={({ field, fieldState }) => (
             <Field>
               <FieldLabel htmlFor={field.name}>Product</FieldLabel>
-              <div className="flex flex-wrap items-center gap-2 pb-2">
+              {initialProduct ? (
                 <Input
-                  value={productSearchInput}
-                  onChange={(event) =>
-                    setProductSearchInput(event.target.value)
-                  }
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault()
-                      handleProductSearch()
-                    }
-                  }}
-                  placeholder="Search products..."
-                  className="w-full"
+                  id="selected-product"
+                  value={`${initialProduct.name} (${initialProduct.sku})`}
+                  readOnly
                 />
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={handleProductSearch}
-                  >
-                    Search
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => {
-                      setProductSearchInput("")
-                      setProductSearch("")
-                    }}
-                  >
-                    Clear
-                  </Button>
-                </div>
-              </div>
+              ) : (
+                <>
+                  <div className="flex flex-wrap items-center gap-2 pb-2">
+                    <Input
+                      value={productSearchInput}
+                      onChange={(event) =>
+                        setProductSearchInput(event.target.value)
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault()
+                          handleProductSearch()
+                        }
+                      }}
+                      placeholder="Search products..."
+                      className="w-full"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleProductSearch}
+                      >
+                        Search
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={() => {
+                          setProductSearchInput("")
+                          setProductSearch("")
+                        }}
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
 
-              <div className="rounded-lg border bg-background">
-                {isProductsLoading ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">
-                    Loading products...
-                  </div>
-                ) : products.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-muted-foreground">
-                    No products found
-                  </div>
-                ) : (
-                  <div className="max-h-52 overflow-y-auto">
-                    {products.map(
-                      (product: { id: string; name: string; sku: string }) => (
-                        <button
-                          key={product.id}
-                          type="button"
-                          onClick={() => field.onChange(product.id)}
-                          className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
-                            field.value === product.id
-                              ? "bg-muted"
-                              : "bg-transparent"
-                          }`}
-                        >
-                          <span className="font-medium">{product.name}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {product.sku}
-                          </span>
-                        </button>
-                      ),
+                  <div className="rounded-lg border bg-background">
+                    {isProductsLoading ? (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        Loading products...
+                      </div>
+                    ) : products.length === 0 ? (
+                      <div className="px-3 py-2 text-sm text-muted-foreground">
+                        No products found
+                      </div>
+                    ) : (
+                      <div className="max-h-52 overflow-y-auto">
+                        {products.map(
+                          (product: {
+                            id: string
+                            name: string
+                            sku: string
+                          }) => (
+                            <button
+                              key={product.id}
+                              type="button"
+                              onClick={() => field.onChange(product.id)}
+                              className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
+                                field.value === product.id
+                                  ? "bg-muted"
+                                  : "bg-transparent"
+                              }`}
+                            >
+                              <span className="font-medium">
+                                {product.name}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {product.sku}
+                              </span>
+                            </button>
+                          ),
+                        )}
+                      </div>
                     )}
                   </div>
-                )}
-              </div>
-
+                </>
+              )}
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
@@ -186,13 +215,17 @@ export function CreateStockMovementForm({
           render={({ field, fieldState }) => (
             <Field>
               <FieldLabel htmlFor={field.name}>Type</FieldLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isPresetProduct}
+              >
                 <SelectTrigger id="type">
                   <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {typeOptions.map((type) => (
+                    {(isPresetProduct ? ["IN"] : typeOptions).map((type) => (
                       <SelectItem key={type} value={type}>
                         {type}
                       </SelectItem>
@@ -200,6 +233,11 @@ export function CreateStockMovementForm({
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              {isPresetProduct && (
+                <p className="text-xs text-muted-foreground">
+                  Low stock actions add inventory only.
+                </p>
+              )}
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}

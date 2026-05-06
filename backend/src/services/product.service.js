@@ -1,4 +1,5 @@
 import { productRepository } from "../repositories/product.repository.js"
+import { stockMovementRepository } from "../repositories/stockMovement.repository.js"
 import {
   BadRequestError,
   ConflictError,
@@ -60,10 +61,32 @@ async function getProductsService(page, limit, search, status = "active") {
     productRepository.countProducts(where),
   ])
 
+  const productIds = products.map((product) => product.id)
+  const stockRows = productIds.length
+    ? await stockMovementRepository.getStockLevelByProductIds(productIds)
+    : []
+
+  const stockMap = new Map()
+
+  for (const row of stockRows) {
+    if (!stockMap.has(row.productId)) {
+      stockMap.set(row.productId, { IN: 0, OUT: 0, ADJUST: 0 })
+    }
+
+    stockMap.get(row.productId)[row.type] = Number(row._sum.quantity || 0)
+  }
+
+  const productsWithStock = products.map((product) => {
+    const stock = stockMap.get(product.id) || { IN: 0, OUT: 0, ADJUST: 0 }
+    const currentStock = stock.IN + stock.ADJUST - stock.OUT
+
+    return { ...product, currentStock }
+  })
+
   const totalPages = Math.ceil(totalCount / limit)
 
   return {
-    products,
+    products: productsWithStock,
     meta: {
       totalCount,
       totalPages,
@@ -73,6 +96,26 @@ async function getProductsService(page, limit, search, status = "active") {
       hasPrevPage: page > 1 && page <= totalPages,
     },
   }
+}
+
+async function getProductDetailsService(id) {
+  const product = await productRepository.findProductWithCategoryById(id)
+
+  if (!product)
+    throw new NotFoundError(`Product with this id: ${id} is not found.`)
+
+  const stockRows = await stockMovementRepository.groupStockLevelByType(id)
+  const totals = stockRows.reduce(
+    (acc, curr) => {
+      acc[curr.type] = curr._sum.quantity || 0
+      return acc
+    },
+    { IN: 0, OUT: 0, ADJUST: 0 },
+  )
+
+  const currentStock = totals.IN + totals.ADJUST - totals.OUT
+
+  return { ...product, currentStock }
 }
 
 async function getProductsByCategoryService(id, page, limit, search) {
@@ -180,6 +223,7 @@ async function restoreProductService(id) {
 
 export {
   createProductService,
+  getProductDetailsService,
   getProductsService,
   getProductsByCategoryService,
   updateProductService,

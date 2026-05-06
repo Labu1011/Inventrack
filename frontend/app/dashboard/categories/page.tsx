@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useCategories } from "@/hooks/categories/useCategories"
+import { useMe } from "@/hooks/auth/useMe"
 import { fetchWithAuth } from "@/lib/api/auth.api"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { PlusIcon, PencilIcon, FolderTreeIcon } from "lucide-react"
@@ -57,6 +58,9 @@ function CategoryCardSkeleton() {
 }
 
 export default function Page() {
+  const { data: me } = useMe()
+  const role = me?.data?.user?.role
+  const canManageCategories = role === "ADMIN"
   const [isCreating, setIsCreating] = useState(false)
   const [categoryName, setCategoryName] = useState("")
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
@@ -173,7 +177,7 @@ export default function Page() {
             each category.
           </p>
         </div>
-        {isCreating ? (
+        {canManageCategories && isCreating ? (
           <div className="flex items-center gap-2">
             <Input
               value={categoryName}
@@ -199,12 +203,12 @@ export default function Page() {
               Cancel
             </Button>
           </div>
-        ) : (
+        ) : canManageCategories ? (
           <Button onClick={() => setIsCreating(true)}>
             <PlusIcon className="size-4" />
             Create Category
           </Button>
-        )}
+        ) : null}
       </div>
 
       {isLoading ? (
@@ -294,7 +298,8 @@ export default function Page() {
                 <p>Created on {formatDate(category.createdAt)}</p>
               </CardContent>
               <CardFooter className="flex items-center gap-2">
-                {editingCategoryId === category.id ? (
+                {!canManageCategories ? null : editingCategoryId ===
+                  category.id ? (
                   <>
                     <Button
                       size="sm"
