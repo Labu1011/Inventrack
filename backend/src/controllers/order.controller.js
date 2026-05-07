@@ -6,6 +6,7 @@ import {
 } from "../dtos/order.dto.js"
 import {
   cancelOrderService,
+  getMyOrdersService,
   getOrderDetailsService,
   getOrderHistoryService,
   placeOrderService,
@@ -94,10 +95,23 @@ async function getOrderDetails(req, res, next) {
   }
 }
 
+async function getMyOrders(req, res, next) {
+  try {
+    const user = req.user
+
+    const orders = await getMyOrdersService(user)
+
+    return res.status(200).json(successResponse({ orders }))
+  } catch (err) {
+    next(err)
+  }
+}
+
 export {
   placeOrder,
   cancelOrder,
   getOrderHistory,
   updateOrderStatus,
   getOrderDetails,
+  getMyOrders,
 }

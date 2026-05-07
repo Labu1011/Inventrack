@@ -9,7 +9,12 @@ import { requireAuth, requireRole } from "../middlewares/auth.middleware.js"
 
 const router = express.Router()
 
-router.get("/summary", requireAuth, requireRole(["ADMIN"]), getDashboardSummary)
+router.get(
+  "/summary",
+  requireAuth,
+  requireRole(["ADMIN", "MANAGER"]),
+  getDashboardSummary,
+)
 router.get(
   "/sales-trend",
   requireAuth,

@@ -42,8 +42,29 @@ export async function updateOrderStatus(id: string, status: OrderStatus) {
   })
 }
 
+export async function cancelOrder(id: string) {
+  return fetchWithAuth(`/orders/${id}/cancel`, {
+    method: "PATCH",
+  })
+}
+
+export async function getMyOrders() {
+  return fetchWithAuth("/orders/my", {
+    method: "GET",
+  })
+}
+
 export async function getOrderById(id: string) {
   return fetchWithAuth(`/orders/${id}`, {
     method: "GET",
+  })
+}
+
+export async function placeOrder(
+  items: { productId: string; quantity: number }[],
+) {
+  return fetchWithAuth(`/orders`, {
+    method: "POST",
+    body: JSON.stringify({ items }),
   })
 }

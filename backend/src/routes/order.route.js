@@ -3,6 +3,7 @@ import {
   cancelOrder,
   getOrderDetails,
   getOrderHistory,
+  getMyOrders,
   placeOrder,
   updateOrderStatus,
 } from "../controllers/order.controller.js"
@@ -19,6 +20,7 @@ router.patch(
   updateOrderStatus,
 )
 router.get("/", requireAuth, getOrderHistory)
+router.get("/my", requireAuth, getMyOrders)
 router.get("/:id", requireAuth, getOrderDetails)
 
 export default router

@@ -90,6 +90,20 @@ export async function logout() {
   return res.json()
 }
 
+export async function logoutAll() {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/logout-all`,
+    {
+      method: "POST",
+      credentials: "include",
+    },
+  )
+
+  setAccessToken(null)
+
+  return res.json()
+}
+
 export async function refreshAccessToken() {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
     method: "POST",

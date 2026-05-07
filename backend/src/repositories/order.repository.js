@@ -95,6 +95,9 @@ async function getOrderHistory(where, take, skip) {
     },
     take,
     skip,
+    orderBy: {
+      createdAt: "desc",
+    },
   })
 }
 
@@ -130,6 +133,30 @@ async function getSingleOrder(id) {
   })
 }
 
+async function getOrdersByUser(userId) {
+  return prisma.order.findMany({
+    where: {
+      userId,
+    },
+    include: {
+      orderItems: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              sku: true,
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  })
+}
+
 export const orderRepository = {
   placeOrder,
   createOrder,
@@ -138,6 +165,7 @@ export const orderRepository = {
   findOrderDetailById,
   getOrderHistory,
   getSingleOrder,
+  getOrdersByUser,
   countOrders,
   updateOrderStatus,
   updateOrderStatusIfCancellable,

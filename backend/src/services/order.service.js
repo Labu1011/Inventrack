@@ -124,6 +124,16 @@ async function cancelOrderService(id, userId) {
         throw new ForbiddenError("You are not allowed to cancel this order.")
       }
 
+      if (!["PENDING", "CONFIRMED"].includes(order.status)) {
+        if (order.status === "CANCELLED") {
+          throw new BadRequestError("Order is already cancelled.")
+        }
+
+        throw new BadRequestError(
+          `This order #${order.orderNumber} is ${order.status.toLowerCase()}. You cannot cancel this order.`,
+        )
+      }
+
       const updated = await orderRepository.updateOrderStatusIfCancellable(
         order.id,
         userId,
@@ -244,10 +254,17 @@ async function getOrderDetailsService(id, user) {
   return order
 }
 
+async function getMyOrdersService(user) {
+  if (!user) throw new UnauthorizedError("Please login and try again.")
+
+  return orderRepository.getOrdersByUser(user.id)
+}
+
 export {
   placeOrderService,
   cancelOrderService,
   updateOrderStatusService,
   getOrderHistoryService,
   getOrderDetailsService,
+  getMyOrdersService,
 }

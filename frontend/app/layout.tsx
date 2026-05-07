@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Outfit, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { TanstackProvider } from "@/components/providers/tanstack-provider"
+import { CartProvider } from "@/components/providers/cart-provider"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
@@ -38,10 +39,12 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <TanstackProvider>
-          <TooltipProvider>
-            {children}
-            <Toaster richColors position="top-right" />
-          </TooltipProvider>
+          <CartProvider>
+            <TooltipProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </TooltipProvider>
+          </CartProvider>
         </TanstackProvider>
       </body>
     </html>
