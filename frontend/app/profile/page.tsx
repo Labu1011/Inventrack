@@ -5,8 +5,8 @@ export default function Page() {
   return (
     <div className="min-h-screen bg-muted/20">
       <LandingNavbar />
-      <main className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6">
-        <div className="space-y-4">
+      <main className="mx-auto w-full max-w-4xl px-4 py-10 md:px-6">
+        <div className="flex flex-col items-center gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
               My Profile
@@ -15,7 +15,9 @@ export default function Page() {
               Review your account details.
             </p>
           </div>
-          <UserProfile />
+          <div className="w-full max-w-xl">
+            <UserProfile />
+          </div>
         </div>
       </main>
     </div>

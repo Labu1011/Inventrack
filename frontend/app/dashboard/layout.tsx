@@ -18,9 +18,11 @@ export default function DashboardLayout({
   const pathname = usePathname()
 
   const role = data?.data?.user?.role
+  const hasUser = Boolean(data?.data?.user)
 
   useEffect(() => {
-    if (isError) {
+    if (isLoading) return
+    if (isError || !hasUser) {
       router.replace(`/login?next=${encodeURIComponent(pathname)}`)
     }
 
@@ -28,9 +30,7 @@ export default function DashboardLayout({
       router.replace("/products")
       return
     }
-
-    console.log(data?.data?.user?.role)
-  }, [data, isError, pathname, router])
+  }, [hasUser, isError, isLoading, pathname, router, role])
 
   if (isLoading) {
     return (

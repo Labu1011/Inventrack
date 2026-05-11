@@ -28,8 +28,9 @@ async function login(req, res, next) {
     res
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        // secure: process.env.NODE_ENV === "production",
+        secure: true,
+        sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000,
       })
       .json(
@@ -63,8 +64,9 @@ async function refresh(req, res, next) {
     res
       .cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        // secure: process.env.NODE_ENV === "production",
+        secure: true,
+        sameSite: "none",
         maxAge: 24 * 60 * 60 * 1000,
       })
       .json(successResponse({ accessToken }))

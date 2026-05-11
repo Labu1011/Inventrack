@@ -293,7 +293,14 @@ export default function Page() {
                     <TableRow key={order.id}>
                       <TableCell>#{order.orderNumber}</TableCell>
                       <TableCell>{order.id}</TableCell>
-                      <TableCell>{order?.user?.name}</TableCell>
+                      <TableCell>
+                        <Link
+                          href="/dashboard/profile"
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          {order?.user?.name}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         <Select
                           value={order.status}

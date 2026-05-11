@@ -7,8 +7,8 @@ export function useLogin() {
   return useMutation({
     mutationFn: login,
     onSuccess: (response) => {
-      toast.success(response.message ?? "User logged in")
       setAccessToken(response?.data.accessToken)
+      toast.success(response.message ?? "User logged in")
     },
     onError: (error) => {
       toast.error(error.message)

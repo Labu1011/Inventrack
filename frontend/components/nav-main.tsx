@@ -12,6 +12,7 @@ import { useMe } from "@/hooks/auth/useMe"
 import { CirclePlusIcon, MailIcon } from "lucide-react"
 import { Skeleton } from "./ui/skeleton"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 
 export function NavMain({
   items,
@@ -23,6 +24,12 @@ export function NavMain({
   }[]
 }) {
   const { data, isLoading } = useMe()
+  const pathname = usePathname()
+
+  const isActiveRoute = (url: string) => {
+    if (url === "/dashboard") return pathname === url
+    return pathname === url || pathname.startsWith(`${url}/`)
+  }
 
   return (
     <SidebarGroup>
@@ -49,12 +56,16 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <Link href={item.url}>
-                <SidebarMenuButton tooltip={item.title}>
+              <SidebarMenuButton
+                asChild
+                tooltip={item.title}
+                isActive={isActiveRoute(item.url)}
+              >
+                <Link href={item.url}>
                   {item.icon}
                   <span>{item.title}</span>
-                </SidebarMenuButton>
-              </Link>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>

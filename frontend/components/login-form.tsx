@@ -22,9 +22,11 @@ import { z } from "zod"
 import { useForm, Controller } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useLogin } from "@/hooks/auth/useLogin"
-import { Loader2 } from "lucide-react"
-import { getAccessToken } from "@/lib/tokenStore"
+import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
+import { setAccessToken } from "@/lib/tokenStore"
 
 const loginFormSchema = z.object({
   email: z.email(),
@@ -35,10 +37,11 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const { mutate, error, isPending } = useLogin()
+  const { mutate, isPending } = useLogin()
   const router = useRouter()
   const searchParams = useSearchParams()
   const next = searchParams.get("next")
+  const [showPassword, setShowPassword] = useState(false)
 
   const form = useForm<z.infer<typeof loginFormSchema>>({
     resolver: zodResolver(loginFormSchema),
@@ -109,12 +112,29 @@ export function LoginForm({
                         Forgot your password?
                       </a>
                     </div>
-                    <Input
-                      id="password"
-                      type="password"
-                      {...field}
-                      aria-invalid={fieldState.invalid}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        {...field}
+                        aria-invalid={fieldState.invalid}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((value) => !value)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showPassword ? (
+                          <EyeOffIcon className="h-4 w-4" />
+                        ) : (
+                          <EyeIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
 
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />

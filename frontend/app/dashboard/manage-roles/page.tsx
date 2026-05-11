@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { useStaffAccounts } from "@/hooks/auth/useStaffAccounts"
 import { useUpdateUserRole } from "@/hooks/auth/useUpdateUserRole"
+import { useLogout } from "@/hooks/auth/useLogout"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -38,6 +39,7 @@ import {
 } from "@/components/ui/dialog"
 import { useMe } from "@/hooks/auth/useMe"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 
 type StaffRole = "ADMIN" | "MANAGER"
 
@@ -58,6 +60,7 @@ export default function Page() {
   const { data, isLoading, isError } = useStaffAccounts()
   const { data: authUser, isLoading: isAuthUserLoading } = useMe()
   const updateRoleMutation = useUpdateUserRole()
+  const logoutMutation = useLogout()
   const [selectedUser, setSelectedUser] = useState<StaffUser | null>(null)
   const [nextRole, setNextRole] = useState<StaffRole | null>(null)
 
@@ -67,6 +70,11 @@ export default function Page() {
   )
 
   const isDialogOpen = Boolean(selectedUser && nextRole)
+  const isSelfDemotion =
+    Boolean(selectedUser && nextRole) &&
+    selectedUser?.id === authUser?.data?.user?.id &&
+    selectedUser?.role === "ADMIN" &&
+    nextRole === "MANAGER"
 
   const handleCloseDialog = () => {
     setSelectedUser(null)
@@ -76,7 +84,16 @@ export default function Page() {
   const handleConfirmRoleChange = () => {
     if (!selectedUser || !nextRole) return
 
-    updateRoleMutation.mutate({ id: selectedUser.id, role: nextRole })
+    updateRoleMutation.mutate(
+      { id: selectedUser.id, role: nextRole },
+      {
+        onSuccess: () => {
+          if (isSelfDemotion) {
+            logoutMutation.mutate()
+          }
+        },
+      },
+    )
     handleCloseDialog()
   }
 
@@ -126,7 +143,12 @@ export default function Page() {
                   {staffAccounts.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell>
-                        {user.name}
+                        <Link
+                          href="/dashboard/profile"
+                          className="text-sm font-medium text-primary hover:underline"
+                        >
+                          {user.name}
+                        </Link>
                         {isAuthUserLoading ? (
                           "..."
                         ) : authUser.data?.user?.id === user.id ? (
@@ -185,6 +207,13 @@ export default function Page() {
                 ? `Assign ${nextRole} role to ${selectedUser.name} (${selectedUser.email})?`
                 : ""}
             </DialogDescription>
+            {isSelfDemotion ? (
+              <p className="text-sm text-destructive">
+                You are about to remove your admin access. You will be logged
+                out and cannot restore admin privileges unless another admin
+                updates your role.
+              </p>
+            ) : null}
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={handleCloseDialog}>

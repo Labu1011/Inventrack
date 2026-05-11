@@ -6,13 +6,15 @@ import { errorHandler } from "./middlewares/global.middleware.js"
 
 const app = express()
 
-app.use(express.json())
-
 app.use(cookieParser())
+app.use(express.json())
 
 app.use(
   cors({
-    origin: [process.env.CORS_ORIGIN],
+    origin: [
+      "http://localhost:3000",
+      "https://installing-fitness-arranged-strap.trycloudflare.com",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],

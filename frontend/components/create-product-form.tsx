@@ -7,7 +7,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Controller, useForm, type FieldValues } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -25,6 +24,8 @@ import {
 } from "@/components/ui/select"
 import { useCategories } from "@/hooks/categories/useCategories"
 
+const unitOptions = ["pcs", "kg", "box", "litre"] as const
+
 // Zod schema for product creation (matching backend DTO)
 const createProductSchema = z.object({
   name: z
@@ -33,13 +34,31 @@ const createProductSchema = z.object({
     .max(255, "Product name cannot exceed 255 characters"),
   sku: z.string().min(2, "SKU is required").max(50, "SKU is too long"),
   categoryId: z.string().uuid("Invalid category ID"),
-  unit: z
+  unit: z.enum(unitOptions),
+  costPrice: z
     .string()
-    .min(2, "Unit is required")
-    .max(15, "Unit name cannot exceed 15 characters"),
-  costPrice: z.string().min(1, "Cost price is required"),
-  sellingPrice: z.string().min(1, "Selling price is required"),
-  reorderLevel: z.string().min(1, "Reorder level is required"),
+    .min(1, "Cost price is required")
+    .refine(
+      (value) => !Number.isNaN(Number(value)),
+      "Cost price must be a valid number",
+    )
+    .refine((value) => Number(value) >= 0, "Cost price cannot be negative"),
+  sellingPrice: z
+    .string()
+    .min(1, "Selling price is required")
+    .refine(
+      (value) => !Number.isNaN(Number(value)),
+      "Selling price must be a valid number",
+    )
+    .refine((value) => Number(value) >= 0, "Selling price cannot be negative"),
+  reorderLevel: z
+    .string()
+    .min(1, "Reorder level is required")
+    .refine(
+      (value) => Number.isInteger(Number(value)),
+      "Reorder level must be an integer",
+    )
+    .refine((value) => Number(value) >= 0, "Reorder level cannot be negative"),
 })
 
 type CreateProductFormData = z.infer<typeof createProductSchema>
@@ -58,7 +77,7 @@ export function CreateProductForm({ onClose }: CreateProductFormProps) {
       name: "",
       sku: "",
       categoryId: "",
-      unit: "",
+      unit: "pcs",
       costPrice: "0",
       sellingPrice: "0",
       reorderLevel: "0",
@@ -165,12 +184,20 @@ export function CreateProductForm({ onClose }: CreateProductFormProps) {
           render={({ field, fieldState }) => (
             <Field>
               <FieldLabel htmlFor={field.name}>Unit</FieldLabel>
-              <Input
-                {...field}
-                id="unit"
-                placeholder="e.g., box, kg, pcs"
-                aria-invalid={fieldState.invalid}
-              />
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="unit">
+                  <SelectValue placeholder="Select a unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {unitOptions.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
@@ -188,6 +215,7 @@ export function CreateProductForm({ onClose }: CreateProductFormProps) {
                   id="costPrice"
                   type="number"
                   step="0.01"
+                  min="0"
                   placeholder="0"
                   aria-invalid={fieldState.invalid}
                 />
@@ -209,6 +237,7 @@ export function CreateProductForm({ onClose }: CreateProductFormProps) {
                   id="sellingPrice"
                   type="number"
                   step="0.01"
+                  min="0"
                   placeholder="0"
                   aria-invalid={fieldState.invalid}
                 />
@@ -230,6 +259,8 @@ export function CreateProductForm({ onClose }: CreateProductFormProps) {
                 {...field}
                 id="reorderLevel"
                 type="number"
+                min="0"
+                step="1"
                 placeholder="0"
                 aria-invalid={fieldState.invalid}
               />

@@ -52,40 +52,53 @@ export function UserProfile() {
     )
   }
 
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "-"
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Profile</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <Avatar className="h-12 w-12">
+      <CardContent className="flex flex-col items-center gap-4 text-center">
+        <Avatar className="h-16 w-16">
           <AvatarImage src={user.avatar ?? ""} alt={user.name} />
           <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
         </Avatar>
-        <div>
-          <div className="text-lg font-semibold text-foreground">
+        <div className="space-y-1">
+          <div className="text-xl font-semibold text-foreground">
             {user.name}
           </div>
           <div className="text-sm text-muted-foreground">{user.email}</div>
-          <div className="mt-2 inline-flex rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          <span className="inline-flex rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
             {user.role}
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <Button
-              variant="link"
-              className="h-auto p-0 text-destructive"
-              onClick={() => logoutMutation.mutate()}
-            >
-              Logout
-            </Button>
-            <Button
-              variant="link"
-              className="h-auto p-0 text-destructive"
-              onClick={() => logoutAllMutation.mutate()}
-            >
-              Logout from all devices
-            </Button>
-          </div>
+          </span>
+          <span className="inline-flex rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
+            Member since {memberSince}
+          </span>
+        </div>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Button
+            variant="link"
+            className="h-auto p-0 text-destructive"
+            onClick={() => logoutMutation.mutate()}
+          >
+            Logout
+          </Button>
+          <Button
+            variant="link"
+            className="h-auto p-0 text-destructive"
+            onClick={() => logoutAllMutation.mutate()}
+          >
+            Logout from all devices
+          </Button>
         </div>
       </CardContent>
     </Card>

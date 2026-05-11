@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { OrderStatus } from "@/lib/api/orders.api"
+import { ArrowLeftIcon } from "lucide-react"
 
 type OrderItem = {
   id: string
@@ -57,10 +58,12 @@ function formatCurrency(value: string | number) {
 }
 
 function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
+  return new Date(value).toLocaleString("en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   })
 }
 
@@ -83,9 +86,12 @@ export default function Page() {
             Review order summary, customer, and items.
           </p>
         </div>
-        <Link href="/dashboard/orders">
-          <Button variant="outline">Back to orders</Button>
-        </Link>
+        <Button variant="outline" asChild>
+          <Link href="/dashboard/orders">
+            <ArrowLeftIcon className="mr-2 h-4 w-4" />
+            Back to orders
+          </Link>
+        </Button>
       </div>
 
       <Card>
@@ -119,7 +125,12 @@ export default function Page() {
                 <p className="text-xs uppercase text-muted-foreground">
                   Customer
                 </p>
-                <p className="text-sm font-medium">{order.user?.name}</p>
+                <Link
+                  href="/dashboard/profile"
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  {order.user?.name}
+                </Link>
               </div>
               <div className="rounded-lg border p-3">
                 <p className="text-xs uppercase text-muted-foreground">Total</p>
@@ -180,9 +191,18 @@ export default function Page() {
                     className="flex flex-wrap items-center justify-between gap-3 rounded-lg border bg-muted/30 p-3"
                   >
                     <div>
-                      <p className="text-sm font-semibold">
-                        {item.product?.name ?? "Unnamed product"}
-                      </p>
+                      {item.product?.id ? (
+                        <Link
+                          href={`/dashboard/products/${item.product.id}`}
+                          className="text-sm font-semibold text-primary hover:underline"
+                        >
+                          {item.product?.name ?? "Unnamed product"}
+                        </Link>
+                      ) : (
+                        <p className="text-sm font-semibold">
+                          {item.product?.name ?? "Unnamed product"}
+                        </p>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Product ID: {item.productId}
                       </p>

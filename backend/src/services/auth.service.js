@@ -139,13 +139,26 @@ async function getAllStaffAccountsService() {
 
 async function updateUserRoleService(userId, role) {
   const user = await authRepository.findUserById(userId)
+  if (!user) {
+    throw new NotFoundError("User not found")
+  }
+
   if (user?.role === "USER") {
     throw new BadRequestError(
       "A customer user cannot be promoted to a staff role.",
     )
   }
 
-  console.log(role)
+  if (user.role === "ADMIN" && role === "MANAGER") {
+    const adminCount = await authRepository.countAdmins()
+
+    if (adminCount <= 1) {
+      throw new BadRequestError(
+        "At least one admin is required. Assign another admin before changing this role.",
+      )
+    }
+  }
+
   const updatedUser = await authRepository.updateUserRole(userId, role)
 
   return updatedUser

@@ -20,9 +20,11 @@ import { useCategories } from "@/hooks/categories/useCategories"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useUpdateProduct } from "@/hooks/products/useUpdateProduct"
 import { Loader2 } from "lucide-react"
-import { Controller, useForm } from "react-hook-form"
+import { Controller, useForm, type SubmitHandler } from "react-hook-form"
 import { useEffect } from "react"
 import { z } from "zod"
+
+const unitOptions = ["pcs", "kg", "box", "litre"] as const
 
 const updateProductSchema = z.object({
   name: z
@@ -34,10 +36,7 @@ const updateProductSchema = z.object({
     .min(2, "SKU must be at least 2 characters")
     .max(50, "SKU is too long"),
   categoryId: z.string().uuid("Invalid category ID"),
-  unit: z
-    .string()
-    .min(2, "Unit must be at least 2 characters")
-    .max(15, "Unit name cannot exceed 15 characters"),
+  unit: z.enum(unitOptions),
   costPrice: z
     .string()
     .min(1, "Cost price is required")
@@ -92,6 +91,11 @@ export function UpdateProductForm({
 }: UpdateProductFormProps) {
   const { data: categoriesResp } = useCategories()
   const categories = categoriesResp?.data?.categories ?? []
+  const normalizedUnit = unitOptions.includes(
+    product.unit as (typeof unitOptions)[number],
+  )
+    ? (product.unit as (typeof unitOptions)[number])
+    : "pcs"
 
   const form = useForm<UpdateProductFormData>({
     resolver: zodResolver(updateProductSchema),
@@ -99,7 +103,7 @@ export function UpdateProductForm({
       name: product.name,
       sku: product.sku,
       categoryId: product.categoryId,
-      unit: product.unit,
+      unit: normalizedUnit,
       costPrice: String(product.costPrice),
       sellingPrice: String(product.sellingPrice),
       reorderLevel: String(product.reorderLevel),
@@ -108,7 +112,7 @@ export function UpdateProductForm({
 
   const updateMutation = useUpdateProduct()
 
-  function onSubmit(data: UpdateProductFormData) {
+  const onSubmit: SubmitHandler<UpdateProductFormData> = (data) => {
     const payload = {
       ...data,
       costPrice: Number(data.costPrice),
@@ -203,12 +207,20 @@ export function UpdateProductForm({
           render={({ field, fieldState }) => (
             <Field>
               <FieldLabel htmlFor={field.name}>Unit</FieldLabel>
-              <Input
-                {...field}
-                id="unit"
-                placeholder="e.g., box, kg, pcs"
-                aria-invalid={fieldState.invalid}
-              />
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger id="unit">
+                  <SelectValue placeholder="Select a unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    {unitOptions.map((unit) => (
+                      <SelectItem key={unit} value={unit}>
+                        {unit}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
               {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
             </Field>
           )}
@@ -226,6 +238,7 @@ export function UpdateProductForm({
                   id="costPrice"
                   type="number"
                   step="0.01"
+                  min="0"
                   placeholder="0"
                   aria-invalid={fieldState.invalid}
                 />
@@ -247,6 +260,7 @@ export function UpdateProductForm({
                   id="sellingPrice"
                   type="number"
                   step="0.01"
+                  min="0"
                   placeholder="0"
                   aria-invalid={fieldState.invalid}
                 />
@@ -268,6 +282,8 @@ export function UpdateProductForm({
                 {...field}
                 id="reorderLevel"
                 type="number"
+                min="0"
+                step="1"
                 placeholder="0"
                 aria-invalid={fieldState.invalid}
               />

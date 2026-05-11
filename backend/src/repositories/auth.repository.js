@@ -76,6 +76,14 @@ async function findUserById(id) {
   })
 }
 
+async function countAdmins() {
+  return prisma.user.count({
+    where: {
+      role: "ADMIN",
+    },
+  })
+}
+
 async function updateUserRole(id, role) {
   return prisma.user.update({
     where: {
@@ -130,6 +138,7 @@ export const authRepository = {
   createCustomerUser,
   createRefreshToken,
   findUserById,
+  countAdmins,
   getAllStaffAccounts,
   updateUserRole,
   findRefreshToken,

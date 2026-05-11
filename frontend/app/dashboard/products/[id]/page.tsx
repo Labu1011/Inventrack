@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useProductDetails } from "@/hooks/products/useProductDetails"
+import { ArrowLeftIcon } from "lucide-react"
 
 function formatCurrency(value: string) {
   const parsed = Number(value)
@@ -80,7 +81,10 @@ export default function Page() {
           </p>
         </div>
         <Button variant="outline" asChild>
-          <Link href="/dashboard/products">Back to products</Link>
+          <Link href="/dashboard/products">
+            <ArrowLeftIcon className="mr-2 h-4 w-4" />
+            Back to products
+          </Link>
         </Button>
       </div>
 

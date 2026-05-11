@@ -16,7 +16,6 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui/field"
-import { toast } from "sonner"
 import { Input } from "@/components/ui/input"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -24,7 +23,8 @@ import { z } from "zod"
 import Link from "next/link"
 import { useRegisterUser } from "@/hooks/auth/useRegisterUser"
 import { useRouter } from "next/navigation"
-import { Loader2 } from "lucide-react"
+import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react"
+import { useState } from "react"
 
 const signupFormSchema = z
   .object({
@@ -50,6 +50,8 @@ export function SignUpForm({
 }: React.ComponentProps<"div">) {
   const { mutate, isPending, error } = useRegisterUser()
   const router = useRouter()
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const form = useForm<z.infer<typeof signupFormSchema>>({
     resolver: zodResolver(signupFormSchema),
@@ -134,12 +136,29 @@ export function SignUpForm({
                     <div className="flex items-center">
                       <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                     </div>
-                    <Input
-                      id="password"
-                      type="password"
-                      {...field}
-                      aria-invalid={fieldState.invalid}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="password"
+                        type={showPassword ? "text" : "password"}
+                        {...field}
+                        aria-invalid={fieldState.invalid}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((value) => !value)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={
+                          showPassword ? "Hide password" : "Show password"
+                        }
+                      >
+                        {showPassword ? (
+                          <EyeOffIcon className="h-4 w-4" />
+                        ) : (
+                          <EyeIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
 
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -158,12 +177,33 @@ export function SignUpForm({
                         Confirm password
                       </FieldLabel>
                     </div>
-                    <Input
-                      id="confirmPassword"
-                      type="password"
-                      {...field}
-                      aria-invalid={fieldState.invalid}
-                    />
+                    <div className="relative">
+                      <Input
+                        id="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        {...field}
+                        aria-invalid={fieldState.invalid}
+                        className="pr-10"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setShowConfirmPassword((value) => !value)
+                        }
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        aria-label={
+                          showConfirmPassword
+                            ? "Hide password confirmation"
+                            : "Show password confirmation"
+                        }
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOffIcon className="h-4 w-4" />
+                        ) : (
+                          <EyeIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    </div>
 
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />

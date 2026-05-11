@@ -30,6 +30,7 @@ import {
   ChevronRightIcon,
   ChevronsLeftIcon,
   ChevronsRightIcon,
+  ArrowLeftIcon,
 } from "lucide-react"
 import { useState } from "react"
 
@@ -110,7 +111,10 @@ export default function Page() {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/dashboard/categories">
-            <Button variant="outline">Back to categories</Button>
+            <Button variant="outline">
+              <ArrowLeftIcon className="mr-2 h-4 w-4" />
+              Back to categories
+            </Button>
           </Link>
         </div>
       </div>

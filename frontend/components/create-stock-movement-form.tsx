@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import { CheckIcon, Loader2 } from "lucide-react"
 import { useCreateStockMovement } from "@/hooks/stock/useCreateStockMovement"
 import { useProducts } from "@/hooks/products/useProducts"
 import type { StockMovementType } from "@/lib/api/stockMovements.api"
@@ -34,7 +34,8 @@ const createStockMovementSchema = z.object({
     .refine(
       (value) => Number.isInteger(Number(value)),
       "Quantity must be an integer",
-    ),
+    )
+    .refine((value) => Number(value) > 0, "Quantity must be greater than 0"),
   note: z.string().optional(),
 })
 
@@ -77,6 +78,12 @@ export function CreateStockMovementForm({
   })
 
   const products = productsResp?.data?.products ?? []
+  const selectedProductId = form.watch("productId")
+  const selectedProduct = initialProduct?.id
+    ? initialProduct
+    : products.find(
+        (product: { id: string }) => product.id === selectedProductId,
+      )
 
   function onSubmit(data: CreateStockMovementFormData) {
     const payload = {
@@ -127,6 +134,17 @@ export function CreateStockMovementForm({
                 />
               ) : (
                 <>
+                  {selectedProduct ? (
+                    <div className="mb-3 rounded-lg border bg-muted/30 px-3 py-2 text-sm">
+                      <span className="text-muted-foreground">Selected:</span>{" "}
+                      <span className="font-medium">
+                        {selectedProduct.name}
+                      </span>{" "}
+                      <span className="text-xs text-muted-foreground">
+                        ({selectedProduct.sku})
+                      </span>
+                    </div>
+                  ) : null}
                   <div className="flex flex-wrap items-center gap-2 pb-2">
                     <Input
                       value={productSearchInput}
@@ -184,18 +202,24 @@ export function CreateStockMovementForm({
                               key={product.id}
                               type="button"
                               onClick={() => field.onChange(product.id)}
+                              aria-selected={field.value === product.id}
                               className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-muted ${
                                 field.value === product.id
-                                  ? "bg-muted"
+                                  ? "bg-primary/10 text-primary ring-1 ring-primary/20"
                                   : "bg-transparent"
                               }`}
                             >
-                              <span className="font-medium">
-                                {product.name}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {product.sku}
-                              </span>
+                              <div className="min-w-0">
+                                <div className="truncate font-medium">
+                                  {product.name}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {product.sku}
+                                </div>
+                              </div>
+                              {field.value === product.id ? (
+                                <CheckIcon className="h-4 w-4 shrink-0" />
+                              ) : null}
                             </button>
                           ),
                         )}
@@ -254,6 +278,7 @@ export function CreateStockMovementForm({
                 id="quantity"
                 type="number"
                 step="1"
+                min="1"
                 placeholder="0"
                 aria-invalid={fieldState.invalid}
               />
