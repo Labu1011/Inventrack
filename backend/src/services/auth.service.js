@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt"
-import crypto from "crypto"
+import crypto, { hash } from "crypto"
 import {
   hashToken,
   signAccessToken,
@@ -13,6 +13,7 @@ import {
   UnauthorizedError,
 } from "../utils/apiError.js"
 import { authRepository } from "../repositories/auth.repository.js"
+import { sendPasswordResetEmail } from "../utils/mailer.js"
 
 async function authenticate({ email, password }) {
   const user = await authRepository.findUserByEmail(email)
@@ -42,6 +43,16 @@ async function getMe(authHeader) {
   const payload = verifyAccessToken(token)
 
   const user = await authRepository.findUserById(payload.sub)
+
+  if (!user) {
+    throw new NotFoundError("User not found")
+  }
+
+  return user
+}
+
+async function getUserByIdService(userId) {
+  const user = await authRepository.findUserById(userId)
 
   if (!user) {
     throw new NotFoundError("User not found")
@@ -164,9 +175,43 @@ async function updateUserRoleService(userId, role) {
   return updatedUser
 }
 
+async function forgotPasswordService(email) {
+  const user = await authRepository.findUserByEmail(email)
+  if (!user) return
+
+  const rawToken = crypto.randomBytes(32).toString("hex")
+  const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex")
+
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+  await authRepository.setPasswordReset(user.id, tokenHash, expiresAt)
+
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${rawToken}`
+
+  await sendPasswordResetEmail(user.email, resetLink)
+}
+
+async function resetPasswordService(token, newPassword) {
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex")
+  const user = await authRepository.findUserByResetToken(tokenHash)
+
+  if (
+    !user ||
+    !user.passwordResetExpires ||
+    user.passwordResetExpires < new Date()
+  ) {
+    throw new BadRequestError("Invalid or expired reset token")
+  }
+
+  const hashedPassword = await hashToken(newPassword)
+  await authRepository.updatePasswordAndClearReset(user.id, hashedPassword)
+
+  await authRepository.deleteAllRefreshToken(user.id)
+}
+
 export {
   authenticate,
   getMe,
+  getUserByIdService,
   rotateRefreshToken,
   logoutByToken,
   logoutAllSessions,
@@ -174,4 +219,6 @@ export {
   registerUserService,
   getAllStaffAccountsService,
   updateUserRoleService,
+  forgotPasswordService,
+  resetPasswordService,
 }

@@ -4,11 +4,14 @@ import {
   refresh,
   logout,
   me,
+  getUserById,
   createUser,
   logoutAll,
   registerUser,
   updateUserRole,
   getAllStaffAccounts,
+  forgotPassword,
+  resetPassword,
 } from "../controllers/auth.controller.js"
 import { requireAuth, requireRole } from "../middlewares/auth.middleware.js"
 
@@ -19,7 +22,15 @@ router.post("/register", registerUser)
 router.post("/refresh", refresh)
 router.post("/logout", logout)
 router.post("/logout-all", logoutAll)
+router.post("/forgot-password", forgotPassword)
+router.post("/reset-password", resetPassword)
 router.get("/me", me)
+router.get(
+  "/users/:id",
+  requireAuth,
+  requireRole(["ADMIN", "MANAGER"]),
+  getUserById,
+)
 router.get(
   "/staff-accounts",
   requireAuth,

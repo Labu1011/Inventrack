@@ -1,4 +1,8 @@
-import { loginSchema } from "../dtos/auth.dto.js"
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  resetPasswordSchema,
+} from "../dtos/auth.dto.js"
 import {
   createUserSchema,
   registerUserSchema,
@@ -7,11 +11,14 @@ import {
 import {
   authenticate,
   createUserService,
+  forgotPasswordService,
   getAllStaffAccountsService,
   getMe,
+  getUserByIdService,
   logoutAllSessions,
   logoutByToken,
   registerUserService,
+  resetPasswordService,
   rotateRefreshToken,
   updateUserRoleService,
 } from "../services/auth.service.js"
@@ -114,6 +121,17 @@ async function me(req, res, next) {
   }
 }
 
+async function getUserById(req, res, next) {
+  try {
+    const id = req.params.id
+    const user = await getUserByIdService(id)
+
+    return res.status(200).json(successResponse({ user }))
+  } catch (err) {
+    next(err)
+  }
+}
+
 async function createUser(req, res, next) {
   try {
     const parsed = createUserSchema.parse(req.body)
@@ -165,12 +183,40 @@ async function updateUserRole(req, res, next) {
   }
 }
 
+async function forgotPassword(req, res, next) {
+  try {
+    const { email } = forgotPasswordSchema.parse(req.body)
+    await forgotPasswordService(email)
+
+    return res
+      .status(200)
+      .json(successResponse(null, "A reset link was sent to your email"))
+  } catch (err) {
+    next(err)
+  }
+}
+
+async function resetPassword(req, res, next) {
+  try {
+    const { token, newPassword } = resetPasswordSchema.parse(req.body)
+    await resetPasswordService(token, newPassword)
+    return res
+      .status(200)
+      .json(successResponse(null, "Password reset successful"))
+  } catch (err) {
+    next(err)
+  }
+}
+
 export {
   login,
   refresh,
   logout,
   logoutAll,
+  forgotPassword,
+  resetPassword,
   me,
+  getUserById,
   getAllStaffAccounts,
   createUser,
   registerUser,

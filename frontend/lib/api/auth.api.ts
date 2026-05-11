@@ -28,6 +28,57 @@ export async function registerUser(data: {
   return body
 }
 
+export async function forgotPassword(email: string) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/forgot-password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    },
+  )
+
+  const body = await res.json().catch(() => null)
+
+  if (!res.ok) {
+    const firstFieldError = body?.errors
+      ? Object.values(body.errors).flat().find(Boolean)
+      : null
+    throw new Error(firstFieldError || body?.message || "Something went wrong")
+  }
+
+  return body
+}
+
+export async function resetPassword(data: {
+  token: string
+  newPassword: string
+}) {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/auth/reset-password`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    },
+  )
+
+  const body = await res.json().catch(() => null)
+
+  if (!res.ok) {
+    const firstFieldError = body?.errors
+      ? Object.values(body.errors).flat().find(Boolean)
+      : null
+    throw new Error(firstFieldError || body?.message || "Something went wrong")
+  }
+
+  return body
+}
+
 export async function createStaffUser(data: {
   name: string
   email: string
@@ -53,6 +104,12 @@ export async function updateUserRole(data: {
   return fetchWithAuth(`/auth/role/${data.id}`, {
     method: "PATCH",
     body: JSON.stringify({ role: data.role }),
+  })
+}
+
+export async function getUserById(userId: string) {
+  return fetchWithAuth(`/auth/users/${userId}`, {
+    method: "GET",
   })
 }
 

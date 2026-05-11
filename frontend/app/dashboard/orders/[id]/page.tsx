@@ -125,12 +125,20 @@ export default function Page() {
                 <p className="text-xs uppercase text-muted-foreground">
                   Customer
                 </p>
-                <Link
-                  href="/dashboard/profile"
-                  className="text-sm font-medium text-primary hover:underline"
-                >
-                  {order.user?.name}
-                </Link>
+                {order.user?.id ? (
+                  <Link
+                    href={`/dashboard/profile?userId=${encodeURIComponent(
+                      order.user.id,
+                    )}`}
+                    className="text-sm font-medium text-primary hover:underline"
+                  >
+                    {order.user.name}
+                  </Link>
+                ) : (
+                  <span className="text-sm text-muted-foreground">
+                    {order.user?.name ?? "Unknown"}
+                  </span>
+                )}
               </div>
               <div className="rounded-lg border p-3">
                 <p className="text-xs uppercase text-muted-foreground">Total</p>

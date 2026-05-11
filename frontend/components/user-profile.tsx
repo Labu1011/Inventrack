@@ -7,6 +7,8 @@ import { useMe } from "@/hooks/auth/useMe"
 import { Button } from "@/components/ui/button"
 import { useLogout } from "@/hooks/auth/useLogout"
 import { useLogoutAll } from "@/hooks/auth/useLogoutAll"
+import { useUserById } from "@/hooks/auth/useUserById"
+import { useSearchParams } from "next/navigation"
 
 function getInitials(name?: string) {
   if (!name) return "U"
@@ -15,8 +17,26 @@ function getInitials(name?: string) {
 }
 
 export function UserProfile() {
-  const { data, isLoading, isError } = useMe()
-  const user = data?.data?.user
+  const searchParams = useSearchParams()
+  const userId = searchParams.get("userId") ?? undefined
+  const isExternal = Boolean(userId)
+
+  const {
+    data: externalData,
+    isLoading: isExternalLoading,
+    isError: isExternalError,
+  } = useUserById(userId)
+  const {
+    data: meData,
+    isLoading: isMeLoading,
+    isError: isMeError,
+  } = useMe({
+    enabled: !isExternal,
+  })
+
+  const user = isExternal ? externalData?.data?.user : meData?.data?.user
+  const isLoading = isExternal ? isExternalLoading : isMeLoading
+  const isError = isExternal ? isExternalError : isMeError
   const logoutMutation = useLogout()
   const logoutAllMutation = useLogoutAll()
 
@@ -45,7 +65,7 @@ export function UserProfile() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Unable to load your profile details.
+            Unable to load profile details.
           </p>
         </CardContent>
       </Card>
@@ -84,22 +104,24 @@ export function UserProfile() {
             Member since {memberSince}
           </span>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <Button
-            variant="link"
-            className="h-auto p-0 text-destructive"
-            onClick={() => logoutMutation.mutate()}
-          >
-            Logout
-          </Button>
-          <Button
-            variant="link"
-            className="h-auto p-0 text-destructive"
-            onClick={() => logoutAllMutation.mutate()}
-          >
-            Logout from all devices
-          </Button>
-        </div>
+        {!isExternal && (
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button
+              variant="link"
+              className="h-auto p-0 text-destructive"
+              onClick={() => logoutMutation.mutate()}
+            >
+              Logout
+            </Button>
+            <Button
+              variant="link"
+              className="h-auto p-0 text-destructive"
+              onClick={() => logoutAllMutation.mutate()}
+            >
+              Logout from all devices
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

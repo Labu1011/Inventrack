@@ -3,7 +3,7 @@ import type { NextConfig } from "next"
 const nextConfig: NextConfig = {
   /* config options here */
   allowedDevOrigins: [
-    "https://installing-fitness-arranged-strap.trycloudflare.com/api",
+    "https://showing-notices-bind-operational.trycloudflare.com/",
   ],
 }
 

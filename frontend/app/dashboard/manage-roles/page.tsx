@@ -144,7 +144,9 @@ export default function Page() {
                     <TableRow key={user.id}>
                       <TableCell>
                         <Link
-                          href="/dashboard/profile"
+                          href={`/dashboard/profile?userId=${encodeURIComponent(
+                            user.id,
+                          )}`}
                           className="text-sm font-medium text-primary hover:underline"
                         >
                           {user.name}

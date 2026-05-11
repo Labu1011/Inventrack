@@ -132,6 +132,31 @@ async function deleteAllRevokedRefreshToken(userId) {
   })
 }
 
+async function setPasswordReset(userId, tokenHash, expiresAt) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: { passwordResetToken: tokenHash, passwordResetExpires: expiresAt },
+  })
+}
+
+async function findUserByResetToken(tokenHash) {
+  return prisma.user.findFirst({
+    where: { passwordResetToken: tokenHash },
+    select: { id: true, email: true, passwordResetExpires: true },
+  })
+}
+
+async function updatePasswordAndClearReset(userId, hashedPassword) {
+  return prisma.user.update({
+    where: { id: userId },
+    data: {
+      password: hashedPassword,
+      passwordResetToken: null,
+      passwordResetExpires: null,
+    },
+  })
+}
+
 export const authRepository = {
   findUserByEmail,
   createStaffAccount,
@@ -146,4 +171,7 @@ export const authRepository = {
   deleteRefreshToken,
   deleteAllRefreshToken,
   deleteAllRevokedRefreshToken,
+  setPasswordReset,
+  findUserByResetToken,
+  updatePasswordAndClearReset,
 }

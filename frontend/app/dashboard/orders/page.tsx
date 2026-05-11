@@ -294,12 +294,20 @@ export default function Page() {
                       <TableCell>#{order.orderNumber}</TableCell>
                       <TableCell>{order.id}</TableCell>
                       <TableCell>
-                        <Link
-                          href="/dashboard/profile"
-                          className="text-sm font-medium text-primary hover:underline"
-                        >
-                          {order?.user?.name}
-                        </Link>
+                        {order.user?.id ? (
+                          <Link
+                            href={`/dashboard/profile?userId=${encodeURIComponent(
+                              order.user.id,
+                            )}`}
+                            className="text-sm font-medium text-primary hover:underline"
+                          >
+                            {order.user.name}
+                          </Link>
+                        ) : (
+                          <span className="text-sm text-muted-foreground">
+                            {order.user?.name ?? "Unknown"}
+                          </span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Select
