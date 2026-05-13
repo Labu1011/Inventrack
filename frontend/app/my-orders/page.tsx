@@ -7,68 +7,15 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { OrderStatus } from "@/lib/api/orders.api"
-
-type OrderItem = {
-  id: string
-  quantity: number
-  unitPrice: string
-  product: {
-    id: string
-    name: string
-    sku: string
-  }
-}
-
-type Order = {
-  id: string
-  orderNumber: number
-  status: OrderStatus
-  totalAmount: string
-  createdAt: string
-  updatedAt: string
-  orderItems: OrderItem[]
-}
-
-type OrdersResponse = {
-  data?: {
-    orders?: Order[]
-  }
-}
-
-const statusStyles: Record<OrderStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-700",
-  CONFIRMED: "bg-blue-100 text-blue-700",
-  SHIPPED: "bg-violet-100 text-violet-700",
-  DELIVERED: "bg-emerald-100 text-emerald-700",
-  CANCELLED: "bg-red-100 text-red-700",
-}
-
-function formatCurrency(value: string) {
-  const parsed = Number(value)
-
-  if (Number.isNaN(parsed)) return "-"
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(parsed)
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
+import { formatCurrency, formatDate } from "@/lib/formatters"
+import { OrdersMyResponse } from "@/lib/types/orders"
+import { orderStatusStyles } from "@/lib/order-status"
 
 export default function Page() {
   const { data, isLoading, isError } = useMyOrders()
   const cancelMutation = useCancelOrder()
 
-  const orders = (data as OrdersResponse)?.data?.orders ?? []
+  const orders = (data as OrdersMyResponse)?.data?.orders ?? []
 
   return (
     <div className="min-h-screen bg-muted/20">
@@ -133,7 +80,7 @@ export default function Page() {
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`rounded-full px-2 py-1 text-xs font-semibold ${statusStyles[order.status]}`}
+                          className={`rounded-full px-2 py-1 text-xs font-semibold ${orderStatusStyles[order.status]}`}
                         >
                           {order.status}
                         </span>
@@ -159,10 +106,10 @@ export default function Page() {
                           >
                             <div>
                               <div className="font-medium text-foreground">
-                                {item.product.name}
+                                {item.product?.name}
                               </div>
                               <div className="text-xs text-muted-foreground">
-                                SKU: {item.product.sku}
+                                SKU: {item.product?.sku}
                               </div>
                             </div>
                             <div className="text-xs text-muted-foreground">

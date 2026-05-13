@@ -19,17 +19,11 @@ import {
 import {
   LayoutDashboardIcon,
   ListIcon,
-  ChartBarIcon,
-  FolderIcon,
-  UsersIcon,
-  CameraIcon,
-  FileTextIcon,
-  Settings2Icon,
-  CircleHelpIcon,
-  SearchIcon,
-  DatabaseIcon,
-  FileChartColumnIcon,
-  FileIcon,
+  PackageIcon,
+  ShoppingCartIcon,
+  ArrowLeftRightIcon,
+  UserPlusIcon,
+  ShieldCheckIcon,
   CommandIcon,
 } from "lucide-react"
 import Link from "next/link"
@@ -54,77 +48,29 @@ const data = {
     {
       title: "Products",
       url: "/dashboard/products",
-      icon: <ChartBarIcon />,
+      icon: <PackageIcon />,
     },
     {
       title: "Orders",
       url: "/dashboard/orders",
-      icon: <FolderIcon />,
+      icon: <ShoppingCartIcon />,
     },
     {
       title: "Stock Movements",
       url: "/dashboard/stock-movements",
-      icon: <UsersIcon />,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: <CameraIcon />,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: <FileTextIcon />,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: <FileTextIcon />,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
+      icon: <ArrowLeftRightIcon />,
     },
   ],
   users: [
     {
       name: "Create Staff Account",
       url: "/dashboard/create-staff-account",
-      icon: <DatabaseIcon />,
+      icon: <UserPlusIcon />,
     },
     {
       name: "Manage Roles",
       url: "/dashboard/manage-roles",
-      icon: <FileChartColumnIcon />,
+      icon: <ShieldCheckIcon />,
     },
   ],
 }

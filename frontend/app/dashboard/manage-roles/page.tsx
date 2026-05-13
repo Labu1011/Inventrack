@@ -40,19 +40,11 @@ import {
 import { useMe } from "@/hooks/auth/useMe"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-
-type StaffRole = "ADMIN" | "MANAGER"
-
-type StaffUser = {
-  id: string
-  name: string
-  email: string
-  role: StaffRole
-}
-
-type StaffAccountsResponse = {
-  data?: StaffUser[]
-}
+import type {
+  StaffAccountsResponse,
+  StaffRole,
+  StaffUser,
+} from "@/lib/types/staff"
 
 const roleOptions: StaffRole[] = ["ADMIN", "MANAGER"]
 

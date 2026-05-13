@@ -1,6 +1,6 @@
 # Inventrack
 
-Inventrack is an inventory management platform for tracking products, categories, stock movements, and customer orders. The repository currently contains a production-style backend API and a Next.js frontend scaffold that can be expanded into the user interface for the system.
+Inventrack is an inventory management platform for tracking products, categories, stock movements, and customer orders. The repository contains a production-style backend API and a Next.js frontend with a full set of inventory and commerce screens.
 
 ## Project Structure
 
@@ -25,6 +25,9 @@ Inventrack is an inventory management platform for tracking products, categories
 - React 19
 - TypeScript
 - Tailwind CSS 4
+- TanStack Query
+- shadcn/ui components
+- next-themes for dark mode
 
 ## Core Domain
 
@@ -45,15 +48,20 @@ All API routes are mounted under `/api`.
 
 Base path: `/api/auth`
 
-| Method | Route          | Description                          |
-| ------ | -------------- | ------------------------------------ |
-| POST   | `/login`       | Authenticate a user and issue tokens |
-| POST   | `/register`    | Register a new user                  |
-| POST   | `/refresh`     | Refresh an access token              |
-| POST   | `/logout`      | Revoke the current session           |
-| POST   | `/logout-all`  | Revoke all sessions for the user     |
-| GET    | `/me`          | Return the current user profile      |
-| POST   | `/create-user` | Create a user account as an admin    |
+| Method | Route              | Description                          |
+| ------ | ------------------ | ------------------------------------ |
+| POST   | `/login`           | Authenticate a user and issue tokens |
+| POST   | `/register`        | Register a new user                  |
+| POST   | `/refresh`         | Refresh an access token              |
+| POST   | `/logout`          | Revoke the current session           |
+| POST   | `/logout-all`      | Revoke all sessions for the user     |
+| POST   | `/forgot-password` | Trigger password reset flow          |
+| POST   | `/reset-password`  | Reset password with token            |
+| GET    | `/me`              | Return the current user profile      |
+| GET    | `/users/:id`       | Get a user by id (admin/manager)     |
+| GET    | `/staff-accounts`  | List staff accounts (admin)          |
+| POST   | `/create-user`     | Create a user account as an admin    |
+| PATCH  | `/role/:id`        | Update a staff role (admin)          |
 
 ### Products
 
@@ -63,6 +71,7 @@ Base path: `/api/products`
 | ------ | -------------- | --------------------------- |
 | POST   | `/`            | Create a product            |
 | GET    | `/`            | List all products           |
+| GET    | `/detail/:id`  | Get product details         |
 | GET    | `/:categoryId` | List products in a category |
 | PATCH  | `/:id`         | Update a product            |
 | PATCH  | `/:id/delete`  | Soft-delete a product       |
@@ -89,18 +98,32 @@ Base path: `/api/stock`
 | ------ | ------------- | ------------------------------------- |
 | POST   | `/move`       | Create a stock movement               |
 | GET    | `/history`    | Get stock movement history            |
+| GET    | `/low-stock`  | Get low stock products                |
 | GET    | `/:productId` | Get current stock level for a product |
 
 ### Orders
 
 Base path: `/api/orders`
 
-| Method | Route         | Description         |
-| ------ | ------------- | ------------------- |
-| POST   | `/`           | Place a new order   |
-| PATCH  | `/:id/cancel` | Cancel an order     |
-| PATCH  | `/:id/status` | Update order status |
-| GET    | `/`           | Get order history   |
+| Method | Route         | Description             |
+| ------ | ------------- | ----------------------- |
+| POST   | `/`           | Place a new order       |
+| PATCH  | `/:id/cancel` | Cancel an order         |
+| PATCH  | `/:id/status` | Update order status     |
+| GET    | `/`           | Get order history       |
+| GET    | `/my`         | Get current user orders |
+| GET    | `/:id`        | Get order details       |
+
+### Dashboard
+
+Base path: `/api/dashboard`
+
+| Method | Route               | Description      |
+| ------ | ------------------- | ---------------- |
+| GET    | `/summary`          | Summary KPIs     |
+| GET    | `/sales-trend`      | Sales trend data |
+| GET    | `/inventory-alerts` | Inventory alerts |
+| GET    | `/top-products`     | Top products     |
 
 ## Backend Notes
 
@@ -109,9 +132,20 @@ Base path: `/api/orders`
 - The database schema is defined in `backend/prisma/schema.prisma`.
 - The server boots from `backend/src/server.js` and mounts all routes through `backend/src/app.js`.
 
-## Frontend Notes
+## Frontend Features
 
-The frontend is currently a minimal Next.js starter shell. It is ready for inventory dashboards, forms, and administrative screens, but the business UI has not been implemented yet.
+- Landing page with sections (hero, features, workflow, FAQ, about, CTA)
+- Authentication screens: login, signup, forgot password, reset password
+- Product browsing with cart, quantity controls, and checkout flow
+- Customer order history and cancellations
+- User profile view
+- Admin/Manager dashboard with KPIs, charts, and data tables
+- Category management with activate/deactivate and inline edits
+- Product management with create/edit/restore/delete and filtering
+- Stock movement history, filters, and low stock list with quick movement creation
+- Order management with status updates and filters
+- Staff management: create staff accounts and manage roles
+- Role-based quick create in the sidebar and a light/dark theme toggle
 
 ## Running The Project
 
@@ -131,5 +165,5 @@ From the current workspace, the backend and frontend are managed as separate app
 ## Status
 
 - Backend API: implemented
-- Frontend UI: scaffolded only
+- Frontend UI: implemented with inventory and commerce flows
 - Database: PostgreSQL via Prisma

@@ -47,54 +47,12 @@ import {
 } from "@/components/ui/dialog"
 import type { LowStockProduct } from "@/lib/api/products.api"
 import type { StockMovementType } from "@/lib/api/stockMovements.api"
-
-type StockMovement = {
-  id: string
-  productId: string
-  orderId?: string | null
-  type: StockMovementType
-  quantity: number
-  note?: string | null
-  createdAt: string
-  updatedAt: string
-  product: {
-    name: string
-    sku: string
-    category?: {
-      name: string
-    } | null
-  }
-}
-
-type StockMovementsMeta = {
-  totalCount: number
-  totalPages: number
-  currentPage: number
-  limit: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
-}
-
-type StockMovementsResponse = {
-  data?: {
-    stockHistory?: StockMovement[]
-    meta?: StockMovementsMeta
-  }
-}
-
-type LowStockProductsResponse = {
-  data?: {
-    products?: LowStockProduct[]
-    meta?: {
-      totalCount: number
-      totalPages: number
-      currentPage: number
-      limit: number
-      hasNextPage: boolean
-      hasPrevPage: boolean
-    }
-  }
-}
+import { formatCurrency, formatDateTime } from "@/lib/formatters"
+import type {
+  LowStockProductsResponse,
+  StockMovement,
+  StockMovementsResponse,
+} from "@/lib/types/stock"
 
 const typeOptions: StockMovementType[] = ["IN", "OUT", "ADJUST"]
 
@@ -104,35 +62,11 @@ const typeStyles: Record<StockMovementType, string> = {
   ADJUST: "bg-amber-100 text-amber-700",
 }
 
-function formatDateTime(value: string) {
-  return new Date(value).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
 function formatQuantity(type: StockMovementType, quantity: number) {
   const normalized = type === "OUT" ? -Math.abs(quantity) : quantity
   const sign = normalized > 0 ? "+" : ""
   return `${sign}${normalized}`
 }
-
-function formatCurrency(value: string) {
-  const parsed = Number(value)
-
-  if (Number.isNaN(parsed)) return "-"
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(parsed)
-}
-
 export default function Page() {
   const { data: me } = useMe()
   const role = me?.data?.user?.role

@@ -39,35 +39,9 @@ import {
   ChevronsRightIcon,
 } from "lucide-react"
 import type { OrderStatus } from "@/lib/api/orders.api"
-
-type Order = {
-  id: string
-  orderNumber: number
-  user: {
-    id: string
-    name: string
-  }
-  status: OrderStatus
-  totalAmount: string
-  createdAt: string
-  updatedAt: string
-}
-
-type OrdersMeta = {
-  totalCount: number
-  totalPages: number
-  currentPage: number
-  limit: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
-}
-
-type OrdersResponse = {
-  data?: {
-    orders?: Order[]
-    meta?: OrdersMeta
-  }
-}
+import { formatCurrency, formatDate } from "@/lib/formatters"
+import { OrdersListResponse } from "@/lib/types/orders"
+import { orderStatusStylesWithHover } from "@/lib/order-status"
 
 const statusOptions: OrderStatus[] = [
   "PENDING",
@@ -87,35 +61,6 @@ function isValidStatusTransition(from: OrderStatus, to: OrderStatus) {
   }
 
   return allowed[from]?.includes(to) || false
-}
-
-function formatCurrency(value: string) {
-  const parsed = Number(value)
-
-  if (Number.isNaN(parsed)) return "-"
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(parsed)
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
-
-const statusStyles: Record<OrderStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-700 hover:bg-amber-100",
-  CONFIRMED: "bg-blue-100 text-blue-700 hover:bg-blue-100",
-  SHIPPED: "bg-violet-100 text-violet-700 hover:bg-violet-100",
-  DELIVERED: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
-  CANCELLED: "bg-red-100 text-red-700 hover:bg-red-100",
 }
 
 export default function Page() {
@@ -145,8 +90,8 @@ export default function Page() {
       : undefined,
   })
 
-  const orders = (data as OrdersResponse)?.data?.orders ?? []
-  const meta = (data as OrdersResponse)?.data?.meta
+  const orders = (data as OrdersListResponse)?.data?.orders ?? []
+  const meta = (data as OrdersListResponse)?.data?.meta
   const updateStatusMutation = useUpdateOrderStatus()
 
   const handleApplyFilters = () => {
@@ -333,7 +278,7 @@ export default function Page() {
                         >
                           <SelectTrigger
                             size="sm"
-                            className={`h-8 w-fit gap-2 border-transparent px-2 text-xs font-semibold ${statusStyles[order.status]}`}
+                            className={`h-8 w-fit gap-2 border-transparent px-2 text-xs font-semibold ${orderStatusStylesWithHover[order.status]}`}
                           >
                             <SelectValue />
                           </SelectTrigger>

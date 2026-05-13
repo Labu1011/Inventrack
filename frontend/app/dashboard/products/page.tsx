@@ -50,61 +50,11 @@ import {
 import { CreateProductForm } from "@/components/create-product-form"
 import { UpdateProductForm } from "@/components/update-product-form"
 import { toast } from "sonner"
-
-type Product = {
-  id: string
-  name: string
-  sku: string
-  category: {
-    name: string
-    id: string
-  }
-  unit: string
-  costPrice: string
-  sellingPrice: string
-  reorderLevel: number
-  currentStock?: number
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-type ProductsMeta = {
-  totalCount: number
-  totalPages: number
-  currentPage: number
-  limit: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
-}
-
-type ProductsResponse = {
-  data?: {
-    products?: Product[]
-    meta?: ProductsMeta
-  }
-}
-
-function formatCurrency(value: string) {
-  const parsed = Number(value)
-
-  if (Number.isNaN(parsed)) return "-"
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(parsed)
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
+import { formatCurrency, formatDate } from "@/lib/formatters"
+import type {
+  ProductAdminListItem,
+  ProductsListResponse,
+} from "@/lib/types/products"
 
 export default function Page() {
   const { data: me } = useMe()
@@ -137,8 +87,9 @@ export default function Page() {
     status: productFilter,
   })
 
-  const products = data?.data?.products ?? []
-  const meta = data?.data?.meta
+  const products =
+    (data as ProductsListResponse<ProductAdminListItem>)?.data?.products ?? []
+  const meta = (data as ProductsListResponse<ProductAdminListItem>)?.data?.meta
 
   const deleteMutation = useDeleteProduct()
   const restoreMutation = useRestoreProduct()

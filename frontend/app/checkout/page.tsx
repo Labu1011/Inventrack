@@ -9,19 +9,7 @@ import { useMe } from "@/hooks/auth/useMe"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { toast } from "sonner"
-
-function formatCurrency(value: string) {
-  const parsed = Number(value)
-
-  if (Number.isNaN(parsed)) return "-"
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(parsed)
-}
+import { formatCurrency } from "@/lib/formatters"
 
 export default function Page() {
   const { items, itemCount, subtotal, clearCart } = useCart()

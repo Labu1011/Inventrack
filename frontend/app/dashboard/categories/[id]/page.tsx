@@ -33,35 +33,12 @@ import {
   ArrowLeftIcon,
 } from "lucide-react"
 import { useState } from "react"
-
-type Product = {
-  id: string
-  name: string
-  sku: string
-  unit: string
-  sellingPrice: string
-  reorderLevel: number
-  isActive: boolean
-  createdAt: string
-}
-
-type ProductsMeta = {
-  totalCount: number
-  totalPages: number
-  currentPage: number
-  limit: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
-}
-
-function formatCurrency(value: string | number) {
-  const num = typeof value === "string" ? Number(value) : value
-  if (Number.isNaN(num)) return "-"
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(num)
-}
+import { formatCurrency } from "@/lib/formatters"
+import type {
+  CategoryProductItem,
+  ProductsListResponse,
+  ProductsMeta,
+} from "@/lib/types/products"
 
 export default function Page() {
   const params = useParams()
@@ -95,8 +72,11 @@ export default function Page() {
   })
 
   const category = categoryResp?.data?.category
-  const products = (productsResp?.data?.products ?? []) as Product[]
-  const meta = productsResp?.data?.meta as ProductsMeta | undefined
+  const products =
+    (productsResp as ProductsListResponse<CategoryProductItem>)?.data
+      ?.products ?? []
+  const meta = (productsResp as ProductsListResponse<CategoryProductItem>)?.data
+    ?.meta as ProductsMeta | undefined
 
   return (
     <div className="space-y-4 px-4 lg:px-6">
@@ -160,7 +140,10 @@ export default function Page() {
                       <TableCell>{p.sku}</TableCell>
                       <TableCell>{p.unit}</TableCell>
                       <TableCell className="text-right">
-                        {formatCurrency(p.sellingPrice)}
+                        {formatCurrency(p.sellingPrice, {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}
                       </TableCell>
                       <TableCell className="text-right">
                         {p.reorderLevel}

@@ -14,53 +14,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton"
 import { useProductDetails } from "@/hooks/products/useProductDetails"
 import { ArrowLeftIcon } from "lucide-react"
-
-function formatCurrency(value: string) {
-  const parsed = Number(value)
-
-  if (Number.isNaN(parsed)) return "-"
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(parsed)
-}
-
-function formatDateTime(value: string) {
-  return new Date(value).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
-
-type ProductDetails = {
-  id: string
-  name: string
-  sku: string
-  category: {
-    id: string
-    name: string
-  }
-  unit: string
-  costPrice: string
-  sellingPrice: string
-  reorderLevel: number
-  currentStock: number
-  isActive: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-type ProductDetailsResponse = {
-  data?: {
-    product?: ProductDetails
-  }
-}
+import { formatCurrency, formatDateTime } from "@/lib/formatters"
+import type {
+  ProductDetails,
+  ProductDetailsResponse,
+} from "@/lib/types/products"
 
 export default function Page() {
   const params = useParams()

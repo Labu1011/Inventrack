@@ -9,70 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { OrderStatus } from "@/lib/api/orders.api"
 import { ArrowLeftIcon } from "lucide-react"
-
-type OrderItem = {
-  id: string
-  orderId: string
-  productId: string
-  quantity: number
-  unitPrice: string
-  product?: {
-    id: string
-    name: string
-  }
-}
-
-type OrderDetails = {
-  id: string
-  orderNumber: number
-  user: {
-    id: string
-    name: string
-  }
-  status: OrderStatus
-  totalAmount: string
-  createdAt: string
-  updatedAt: string
-  orderItems: OrderItem[]
-}
-
-const statusStyles: Record<OrderStatus, string> = {
-  PENDING: "bg-amber-100 text-amber-700 hover:bg-amber-100",
-  CONFIRMED: "bg-blue-100 text-blue-700 hover:bg-blue-100",
-  SHIPPED: "bg-violet-100 text-violet-700 hover:bg-violet-100",
-  DELIVERED: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
-  CANCELLED: "bg-red-100 text-red-700 hover:bg-red-100",
-}
-
-function formatCurrency(value: string | number) {
-  const parsed = typeof value === "string" ? Number(value) : value
-
-  if (Number.isNaN(parsed)) return "-"
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(parsed)
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
-}
+import { formatCurrency, formatDateTime } from "@/lib/formatters"
+import { OrderDetails, OrderDetailsResponse } from "@/lib/types/orders"
+import { orderStatusStylesWithHover } from "@/lib/order-status"
 
 export default function Page() {
   const params = useParams()
   const orderId = params?.id as string | undefined
 
   const { data, isLoading, isError } = useOrderDetails(orderId)
-  const orderPayload = data?.data?.order ?? data?.data
+  const orderPayload = (data as OrderDetailsResponse)?.data?.order ?? data?.data
   const order = orderPayload as OrderDetails | undefined
 
   return (
@@ -117,7 +63,7 @@ export default function Page() {
                 <p className="text-xs uppercase text-muted-foreground">
                   Status
                 </p>
-                <Badge className={statusStyles[order.status]}>
+                <Badge className={orderStatusStylesWithHover[order.status]}>
                   {order.status}
                 </Badge>
               </div>
@@ -151,7 +97,7 @@ export default function Page() {
                   Created
                 </p>
                 <p className="text-sm font-medium">
-                  {formatDate(order.createdAt)}
+                  {formatDateTime(order.createdAt)}
                 </p>
               </div>
               <div className="rounded-lg border p-3">
@@ -159,7 +105,7 @@ export default function Page() {
                   Last updated
                 </p>
                 <p className="text-sm font-medium">
-                  {formatDate(order.updatedAt)}
+                  {formatDateTime(order.updatedAt)}
                 </p>
               </div>
               <div className="rounded-lg border p-3">

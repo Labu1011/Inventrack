@@ -20,24 +20,8 @@ import { PlusIcon, PencilIcon, FolderTreeIcon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
 import Link from "next/link"
-
-type Category = {
-  id: string
-  name: string
-  isActive: boolean
-  createdAt: string
-  _count: {
-    products: number
-  }
-}
-
-function formatDate(value: string) {
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  })
-}
+import { formatDate } from "@/lib/formatters"
+import type { CategoryWithCount } from "@/lib/types/categories"
 
 function CategoryCardSkeleton() {
   return (
@@ -70,7 +54,7 @@ export default function Page() {
   const queryClient = useQueryClient()
 
   const { data, isLoading, isError } = useCategories({ includeInactive: true })
-  const categories = (data?.data?.categories ?? []) as Category[]
+  const categories = (data?.data?.categories ?? []) as CategoryWithCount[]
 
   const { mutate: createCategory, isPending: isCreatingCategory } = useMutation(
     {
@@ -146,7 +130,7 @@ export default function Page() {
     createCategory(trimmed)
   }
 
-  const handleStartEdit = (category: Category) => {
+  const handleStartEdit = (category: CategoryWithCount) => {
     setEditingCategoryId(category.id)
     setEditingCategoryName(category.name)
   }

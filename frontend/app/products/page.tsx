@@ -34,51 +34,11 @@ import {
 import { toast } from "sonner"
 import { LandingNavbar } from "@/components/landing-navbar"
 import { useRouter } from "next/navigation"
-
-type Product = {
-  id: string
-  name: string
-  sku: string
-  category: {
-    id: string
-    name: string
-  }
-  unit: string
-  costPrice: string
-  sellingPrice: string
-  reorderLevel: number
-  currentStock?: number
-  isActive: boolean
-}
-
-type ProductsMeta = {
-  totalCount: number
-  totalPages: number
-  currentPage: number
-  limit: number
-  hasNextPage: boolean
-  hasPrevPage: boolean
-}
-
-type ProductsResponse = {
-  data?: {
-    products?: Product[]
-    meta?: ProductsMeta
-  }
-}
-
-function formatCurrency(value: string) {
-  const parsed = Number(value)
-
-  if (Number.isNaN(parsed)) return "-"
-
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(parsed)
-}
+import { formatCurrency } from "@/lib/formatters"
+import type {
+  ProductStoreItem,
+  ProductsListResponse,
+} from "@/lib/types/products"
 
 export default function Page() {
   const { data: me } = useMe()
@@ -103,8 +63,9 @@ export default function Page() {
     status: "active",
   })
 
-  const products = (data as ProductsResponse)?.data?.products ?? []
-  const meta = (data as ProductsResponse)?.data?.meta
+  const products =
+    (data as ProductsListResponse<ProductStoreItem>)?.data?.products ?? []
+  const meta = (data as ProductsListResponse<ProductStoreItem>)?.data?.meta
 
   const handleSearch = () => {
     setPage(1)
