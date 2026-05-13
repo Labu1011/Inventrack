@@ -7,7 +7,7 @@ export default function Page() {
       <LandingNavbar />
       <main className="mx-auto w-full max-w-4xl px-4 py-10 md:px-6">
         <div className="flex flex-col items-center gap-4">
-          <div>
+          <div className="text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
               My Profile
             </h1>

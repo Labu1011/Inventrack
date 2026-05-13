@@ -6,6 +6,7 @@ import { CartProvider } from "@/components/providers/cart-provider"
 import { cn } from "@/lib/utils"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Toaster } from "@/components/ui/sonner"
+import { ThemeProvider } from "@/components/providers/theme-provider"
 
 const fontSans = Outfit({
   subsets: ["latin"],
@@ -36,16 +37,19 @@ export default function RootLayout({
         fontSans.variable,
         fontMono.variable,
       )}
+      suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col">
-        <TanstackProvider>
-          <CartProvider>
-            <TooltipProvider>
-              {children}
-              <Toaster richColors position="top-right" />
-            </TooltipProvider>
-          </CartProvider>
-        </TanstackProvider>
+        <ThemeProvider>
+          <TanstackProvider>
+            <CartProvider>
+              <TooltipProvider>
+                {children}
+                <Toaster richColors position="top-right" />
+              </TooltipProvider>
+            </CartProvider>
+          </TanstackProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

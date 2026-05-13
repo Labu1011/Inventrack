@@ -43,9 +43,6 @@ export function UserProfile() {
   if (isLoading) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-        </CardHeader>
         <CardContent className="flex items-center gap-4">
           <Skeleton className="h-12 w-12 rounded-full" />
           <div className="space-y-2">
@@ -60,9 +57,6 @@ export function UserProfile() {
   if (isError || !user) {
     return (
       <Card>
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-        </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
             Unable to load profile details.
@@ -82,9 +76,6 @@ export function UserProfile() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Profile</CardTitle>
-      </CardHeader>
       <CardContent className="flex flex-col items-center gap-4 text-center">
         <Avatar className="h-16 w-16">
           <AvatarImage src={user.avatar ?? ""} alt={user.name} />

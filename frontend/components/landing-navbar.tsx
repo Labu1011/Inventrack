@@ -43,7 +43,11 @@ export function LandingNavbar() {
     <nav className="border-b border-border/70 bg-background/80 backdrop-blur">
       <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 md:px-6">
         <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-primary">Inventrack</span>
+          <Link href="/">
+            <span className="text-lg font-semibold text-primary">
+              Inventrack
+            </span>
+          </Link>
           <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
             {user?.role ?? "Guest"}
           </span>
@@ -51,10 +55,16 @@ export function LandingNavbar() {
 
         <div className="hidden items-center gap-6 text-sm text-muted-foreground md:flex">
           <a
-            href="#features"
+            href="/#features"
             className="transition-colors hover:text-foreground"
           >
             Features
+          </a>
+          <a
+            href="/#workflow"
+            className="transition-colors hover:text-foreground"
+          >
+            How it works
           </a>
           <Link
             href="/products"
@@ -70,8 +80,11 @@ export function LandingNavbar() {
               My Orders
             </Link>
           ) : null}
-          <a href="#about" className="transition-colors hover:text-foreground">
+          <a href="/#about" className="transition-colors hover:text-foreground">
             About
+          </a>
+          <a href="/#faq" className="transition-colors hover:text-foreground">
+            FAQ
           </a>
         </div>
 
@@ -159,6 +172,11 @@ export function LandingNavbar() {
           </DropdownMenu>
           {!isLoading && !isError && user ? (
             <>
+              {user.role === "USER" ? null : (
+                <Link href="/dashboard">
+                  <Button>Dashboard</Button>
+                </Link>
+              )}
               <Link href="/profile" className="rounded-full">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src={user.avatar ?? ""} alt={user.name} />
