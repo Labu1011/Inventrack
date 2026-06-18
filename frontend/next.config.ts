@@ -2,9 +2,7 @@ import type { NextConfig } from "next"
 
 const nextConfig: NextConfig = {
   /* config options here */
-  allowedDevOrigins: [
-    "https://nonprofit-maintain-chances-berry.trycloudflare.com ",
-  ],
+  allowedDevOrigins: ["https://inventrack-jg2l.onrender.com/"],
 }
 
 export default nextConfig

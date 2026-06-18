@@ -11,7 +11,9 @@ app.use(express.json())
 
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: [
+      "https://inventrack-dr4a496xn-tarek-jaman-labus-projects.vercel.app",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
