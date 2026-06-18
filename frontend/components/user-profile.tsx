@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button"
 import { useLogout } from "@/hooks/auth/useLogout"
 import { useLogoutAll } from "@/hooks/auth/useLogoutAll"
 import { useUserById } from "@/hooks/auth/useUserById"
-import { useSearchParams } from "next/navigation"
 
 function getInitials(name?: string) {
   if (!name) return "U"
@@ -16,9 +15,7 @@ function getInitials(name?: string) {
   return parts.map((part) => part[0]?.toUpperCase()).join("") || "U"
 }
 
-export function UserProfile() {
-  const searchParams = useSearchParams()
-  const userId = searchParams.get("userId") ?? undefined
+export function UserProfile({ userId }: { userId?: string }) {
   const isExternal = Boolean(userId)
 
   const {

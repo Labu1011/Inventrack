@@ -1,6 +1,10 @@
 import { UserProfile } from "@/components/user-profile"
 
-export default function Page() {
+export default function Page({
+  searchParams,
+}: {
+  searchParams?: { userId?: string }
+}) {
   return (
     <div className="flex flex-col items-center gap-4 px-4 lg:px-6">
       <div className="text-center">
@@ -10,7 +14,7 @@ export default function Page() {
         </p>
       </div>
       <div className="w-full max-w-xl">
-        <UserProfile />
+        <UserProfile userId={searchParams?.userId} />
       </div>
     </div>
   )
