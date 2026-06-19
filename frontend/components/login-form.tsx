@@ -25,8 +25,24 @@ import { useLogin } from "@/hooks/auth/useLogin"
 import { EyeIcon, EyeOffIcon, Loader2 } from "lucide-react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useState } from "react"
-import { toast } from "sonner"
-import { setAccessToken } from "@/lib/tokenStore"
+
+const testAccounts = [
+  {
+    role: "Admin",
+    email: "admin@mail.com",
+    password: "Admin123",
+  },
+  {
+    role: "Manager",
+    email: "manager1@mail.com",
+    password: "Manager123",
+  },
+  {
+    role: "User",
+    email: "john@mail.com",
+    password: "John123",
+  },
+]
 
 const loginFormSchema = z.object({
   email: z.email(),
@@ -163,6 +179,33 @@ export function LoginForm({
               </Field>
             </FieldGroup>
           </form>
+
+          <div className="mt-5 rounded-lg border bg-muted/30 p-3">
+            <p className="text-sm font-medium">Testing accounts</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Use one of these demo accounts to test role-based access.
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Note: The first request may take a little longer because the
+              backend is running on a free-tier host.
+            </p>
+            <div className="mt-3 space-y-2 text-xs">
+              {testAccounts.map((account) => (
+                <div
+                  key={account.role}
+                  className="rounded-md border bg-card p-2"
+                >
+                  <p className="font-medium">{account.role}</p>
+                  <p className="text-muted-foreground">
+                    Email: {account.email}
+                  </p>
+                  <p className="text-muted-foreground">
+                    Password: {account.password}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>

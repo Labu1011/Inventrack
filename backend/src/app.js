@@ -13,6 +13,7 @@ app.use(
   cors({
     origin: [
       "https://inventrack-dr4a496xn-tarek-jaman-labus-projects.vercel.app",
+      "https://inventrack-fawn.vercel.app",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
